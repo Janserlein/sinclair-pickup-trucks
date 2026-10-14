@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+Disallow: /gracias.html
+
+Sitemap: https://janserlein.github.io/sinclair-pickup-trucks/sitemap.xml
