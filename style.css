@@ -693,3 +693,10 @@ footer {
     .cotizar-form { padding: 26px 18px; }
     .form-row { gap: 0; }
 }
+
+
+/* ===== BOTONES DE FACEBOOK E INSTAGRAM (agregado 15-oct-2026) ===== */
+.social-icon.facebook { background-color: #1877F2; color: #fff; }
+.social-icon.facebook:hover { background-color: #0f5fc4; }
+.social-icon.instagram { background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888); color: #fff; }
+.social-icon.instagram:hover { filter: brightness(1.1); }
