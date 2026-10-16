@@ -468,7 +468,8 @@ function confirmarCodigo() {
     var cTel = codigoPendiente.cuenta.telefono;
     llamarCuaderno({accion: 'verificar', telefono: cTel, codigo: escrito}, function (r) {
       if (r && r.ok) {
-        pasarAdentro(r.nombre, r.papel, r.tipo, r.estado, r.vuelve ? 2 : 1);
+        pasarAdentro(r.nombre, r.papel, r.tipo, r.estado, r.entradas || (r.vuelve ? 2 : 1),
+                      r.ultimo || ahora(), !!r.vuelve);
       } else {
         salida.innerHTML = '<div class="linea-ojo">' + escapar((r && r.mensaje) || 'Ese codigo no es.') + '</div>';
       }
@@ -488,30 +489,35 @@ function confirmarCodigo() {
     c.ultimo_ingreso = ahora();
     guardar(LLAVE, cuentas);
   }
-  codigoPendiente = null;
-  document.getElementById('paso-codigo').classList.add('oculto');
-  salida.innerHTML = '<div class="linea-ok"><b>¡Adelante, ' + escapar(c ? c.nombre : '') + '!</b><br>' +
-    'Eres ' + (esVuelta ? '<b>un usuario que vuelve</b>' : '<b>un usuario que entra por primera vez</b>') +
-    ' y tu cuenta es de <b>' + nombrePapel(c ? c.papel : '') + '</b>.' +
-    (c && c.estado === 'pendiente de aprobación' ? '<br><b>Tu cuenta de conductor está pendiente de aprobación.</b>' : '') +
-    (c && c.tipo === 'conductor'
-      ? '<br>Tu panel de conductor: tus trabajos asignados, la entrega y el botón de <b>entregado</b>.'
-      : '<br>Tu panel de pedidos: pedir un servicio, seguirlo y ver tus cotizaciones.') +
-    '<br><small>Última entrada: ' + fechaBonita(c ? c.ultimo_ingreso : ahora()) + ' · Entradas: ' + (c ? c.ingresos : 1) + '</small></div>';
+  pasarAdentro(c ? c.nombre : '', c ? c.papel : '', c ? c.tipo : '', c ? c.estado : '',
+                c ? c.ingresos : 1, c ? c.ultimo_ingreso : ahora(), !!esVuelta);
 }
 
-function pasarAdentro(nombre, papel, tipo, estado, entradas) {
+function pasarAdentro(nombre, papel, tipo, estado, entradas, ultima, vuelveObligado) {
   codigoPendiente = null;
   document.getElementById('paso-codigo').classList.add('oculto');
-  var vuelve = (entradas || 1) > 1;
+  var n = (entradas || 1);
+  var vuelve = (vuelveObligado === true) || n > 1;
+  var esConductor = (tipo === 'conductor') || (papel === 'piloto');
+  var pendiente = estado && estado.indexOf('pendiente') === 0;
+  var quien;
+  if (esConductor) {
+    quien = vuelve ? '<b>CONDUCTOR QUE REGRESA</b> (ya estabas incorporado)'
+                   : '<b>CONDUCTOR NUEVO</b>' + (pendiente ? ' (tu cuenta queda pendiente de aprobación)' : '');
+  } else {
+    quien = vuelve ? '<b>CLIENTE / EMPRESA QUE VUELVE</b> (ya tenías cuenta)'
+                   : '<b>CLIENTE / EMPRESA NUEVO</b> (acabas de crear tu cuenta)';
+  }
   document.getElementById('resultado-entrar').innerHTML =
     '<div class="linea-ok"><b>¡Adelante, ' + escapar(nombre) + '!</b><br>' +
-    'Eres ' + (vuelve ? '<b>un usuario que vuelve</b>' : '<b>un usuario que entra por primera vez</b>') +
-    ' y tu cuenta es de <b>' + nombrePapel(papel) + '</b>.' +
-    (estado && estado.indexOf('pendiente') === 0 ? '<br><b>Tu cuenta de conductor está pendiente de aprobación.</b>' : '') +
-    (tipo === 'conductor'
+    'Eres ' + quien + '.<br>Tu cuenta es de <b>' + nombrePapel(papel) + '</b>' +
+    (pendiente && esConductor
+      ? ' y está <b>pendiente de aprobación</b>: la empresa revisa tus datos y te avisa.'
+      : ' · Estado: <b>' + escapar(estado || 'activo') + '</b>.') +
+    (esConductor
       ? '<br>Tu panel de conductor: tus trabajos asignados, la entrega y el botón de <b>entregado</b>.'
-      : '<br>Tu panel de pedidos: pedir un servicio, seguirlo y ver tus cotizaciones.') + '</div>';
+      : '<br>Tu panel de pedidos: pedir un servicio, seguirlo y ver tus cotizaciones.') +
+    '<br><small>Entradas a tu cuenta: ' + n + ' · Última: ' + fechaBonita(ultima || ahora()) + '</small></div>';
 }
 
 function olvide() {
