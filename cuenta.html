@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crear cuenta o entrar | Sinclair Pickup Trucks</title>
+    <meta name="description" content="Crea tu cuenta en Sinclair Pickup Trucks: corredor, compañía de transporte, cliente o piloto. Entra con tu nombre, teléfono o correo y un código de confirmación.">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .acciones-arriba{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin:18px 0 4px;}
+        .acciones-arriba .btn-main{text-decoration:none;}
+        .btn-borde{background:#fff;color:#ff6b00;border:2px solid #ff6b00;}
+        .caja{max-width:720px;margin:0 auto;background:#fff;border:1px solid #e2e8f0;border-radius:14px;padding:22px;}
+        .tipos{display:flex;gap:10px;flex-wrap:wrap;margin:10px 0 18px;}
+        .tipo{border:2px solid #e2e8f0;border-radius:12px;padding:12px 16px;cursor:pointer;background:#fff;font-weight:600;color:#0f172a;}
+        .tipo:hover{border-color:#ff6b00;}
+        .tipo.elegido{border-color:#ff6b00;background:#fff7f0;}
+        .aviso-legal{font-size:.88rem;color:#475569;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:12px;max-height:190px;overflow:auto;}
+        .linea-ok{background:#ecfdf5;border:1px solid #34d399;color:#065f46;border-radius:10px;padding:12px;margin:12px 0;}
+        .linea-ojo{background:#fff7ed;border:1px solid #fdba74;color:#9a3412;border-radius:10px;padding:12px;margin:12px 0;}
+        .modal{position:fixed;inset:0;background:rgba(15,23,42,.55);display:none;align-items:center;justify-content:center;padding:16px;z-index:999;}
+        .modal.abierto{display:flex;}
+        .modal-caja{background:#fff;border-radius:14px;max-width:560px;width:100%;max-height:90vh;overflow:auto;padding:22px;}
+        .codigo{font-size:2rem;letter-spacing:.4rem;font-weight:800;color:#ff6b00;text-align:center;}
+        .oculto{display:none;}
+        .pestanas{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;}
+        .pestana{padding:10px 16px;border-radius:10px;border:1px solid #e2e8f0;background:#f8fafc;cursor:pointer;font-weight:600;}
+        .pestana.activa{background:#0f172a;color:#fff;border-color:#0f172a;}
+    </style>
+</head>
+<body>
+
+<header class="header-principal">
+    <div class="logo">SINCLAIR <span>PICKUP TRUCKS</span></div>
+    <nav class="nav-links">
+        <a href="index.html">Inicio</a>
+        <a href="index.html#servicios">Nuestros Servicios</a>
+        <a href="index.html#precio">Precio al Instante</a>
+        <a href="index.html#contacto">Contacto</a>
+        <a href="en.html" title="English" style="border:1px solid #ff6b00;padding:6px 12px;border-radius:8px;">US English</a>
+    </nav>
+</header>
+
+<section class="cotizar-section" style="padding-top:40px;">
+    <div class="section-title">
+        <h2>Únete a Sinclair Pickup Trucks</h2>
+        <div class="line"></div>
+        <p class="subtitle">Empieza a gestionar tus operaciones de transporte de forma eficiente.</p>
+    </div>
+
+    <div class="acciones-arriba">
+        <button class="btn-main" onclick="abrirDemo()">Demo programada</button>
+        <button class="btn-main btn-borde" onclick="irA('crear')">Empieza</button>
+        <button class="btn-main btn-borde" onclick="irA('entrar')">Iniciar sesión</button>
+    </div>
+
+    <div class="caja" style="margin-top:22px;">
+        <div class="pestanas">
+            <div class="pestana activa" id="pestana-crear" onclick="irA('crear')">Crear cuenta</div>
+            <div class="pestana" id="pestana-entrar" onclick="irA('entrar')">Iniciar sesión</div>
+            <div class="pestana" onclick="irA('seguir')">Seguir mi trabajo</div>
+        </div>
+
+        <!-- ================= CREAR CUENTA ================= -->
+        <div id="vista-crear">
+            <h3>Soy un:</h3>
+            <div class="tipos" id="tipos">
+                <button type="button" class="tipo" data-papel="corredor" onclick="elegirPapel('corredor')">Corredor</button>
+                <button type="button" class="tipo" data-papel="compania" onclick="elegirPapel('compania')">Compañía de Transporte</button>
+                <button type="button" class="tipo" data-papel="cliente" onclick="elegirPapel('cliente')">Cliente / negocio</button>
+                <button type="button" class="tipo" data-papel="piloto" onclick="elegirPapel('piloto')">Piloto (conductor)</button>
+            </div>
+
+            <form id="form-crear" onsubmit="return crearCuenta(event)">
+                <div class="form-row" id="fila-empresa">
+                    <div class="form-group">
+                        <label for="empresa">Nombre de la empresa</label>
+                        <input id="empresa" name="empresa" type="text" placeholder="Mi Compañía Inc.">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="nombre">Nombre de pila *</label>
+                        <input id="nombre" name="nombre" type="text" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="apellido">Apellido *</label>
+                        <input id="apellido" name="apellido" type="text" required>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="telefono">Número de teléfono *</label>
+                        <input id="telefono" name="telefono" type="tel" placeholder="(904) 555-1234" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="correo">Dirección de correo electrónico *</label>
+                        <input id="correo" name="correo" type="email" placeholder="tu@compania.com" required>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="clave">Contraseña *</label>
+                        <input id="clave" name="clave" type="password" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="clave2">Confirmar contraseña *</label>
+                        <input id="clave2" name="clave2" type="password" required>
+                    </div>
+                </div>
+
+                <div id="campos-conductor" class="oculto">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="vehiculo">Tipo de vehículo</label>
+                            <input id="vehiculo" type="text" placeholder="Pickup, trailer, van...">
+                        </div>
+                        <div class="form-group">
+                            <label for="licencia">Número de licencia</label>
+                            <input id="licencia" type="text" placeholder="Licencia de conducir">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="zona">Zona donde trabaja</label>
+                            <input id="zona" type="text" placeholder="Jacksonville y alrededores">
+                        </div>
+                        <div class="form-group">
+                            <label for="seguro">Seguro del vehículo</label>
+                            <input id="seguro" type="text" placeholder="Compañía y número de póliza">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="aviso-legal" style="margin:12px 0;">
+                    <b>Acuse de recibo de la política de seguimiento de ubicación:</b><br>
+                    Reconozco y estoy de acuerdo en que, como usuario de esta plataforma, la plataforma
+                    tendrá acceso a datos de localización de las empresas de transporte y de los
+                    conductores <b>durante asignaciones de trabajo activas</b>. Esta capacidad de
+                    seguimiento se proporciona estrictamente para: (1) seguimiento y coordinación en
+                    tiempo real del progreso del trabajo; (2) gestión logística eficiente y optimización
+                    de rutas; (3) mejora de la supervisión operativa y de la seguridad; (4) verificación
+                    precisa de la prestación del servicio y control de calidad. Entiendo que el acceso a
+                    los datos de ubicación se concede únicamente para fines empresariales legítimos
+                    relacionados con la ejecución y gestión de los trabajos, y acepto usar esa
+                    información exclusivamente para necesidades operativas.
+                </div>
+                <label style="display:block;font-weight:600;">
+                    <input type="checkbox" id="acuse" required> Acepto y firmo el acuse de recibo de la política de seguimiento de ubicación *
+                </label>
+
+                <button type="submit" class="btn-main btn-form" style="margin-top:16px;">Create Account</button>
+                <p class="form-aviso">Al crear tu cuenta aceptas que te contactemos para coordinar tus trabajos.</p>
+            </form>
+            <div id="resultado-crear"></div>
+        </div>
+
+        <!-- ================= INICIAR SESIÓN ================= -->
+        <div id="vista-entrar" class="oculto">
+            <h3>¡Bienvenido de nuevo!</h3>
+            <p class="subtitle" style="text-align:left;">Escribe tu nombre, tu teléfono o tu correo y te reconocemos.</p>
+            <div class="form-group">
+                <label for="quien">Nombre, teléfono o correo</label>
+                <input id="quien" type="text" placeholder="Ej: Juan Pérez  ·  (904) 555-1234  ·  juan@correo.com">
+            </div>
+            <button class="btn-main btn-form" onclick="pedirCodigo()">Continuar</button>
+            <p class="form-aviso"><a href="javascript:void(0)" onclick="olvide()">¿Olvidaste la contraseña?</a></p>
+
+            <div id="paso-codigo" class="oculto" style="margin-top:16px;">
+                <div class="linea-ok" id="aviso-codigo"></div>
+                <div class="form-group">
+                    <label for="codigo">Código de confirmación (6 dígitos)</label>
+                    <input id="codigo" type="text" inputmode="numeric" maxlength="6" placeholder="000000">
+                </div>
+                <button class="btn-main btn-form" onclick="confirmarCodigo()">Entrar</button>
+                <p class="form-aviso">
+                    <a href="javascript:void(0)" onclick="pedirCodigo(true)">No me llegó el código</a> ·
+                    <a href="javascript:void(0)" onclick="cambiarDatos()">Cambiar mi número o correo</a>
+                </p>
+            </div>
+            <div id="resultado-entrar"></div>
+        </div>
+
+        <!-- ================= SEGUIR MI TRABAJO ================= -->
+        <div id="vista-seguir" class="oculto">
+            <h3>Sigue tu trabajo</h3>
+            <p class="subtitle" style="text-align:left;">Escribe el código de tu trabajo (te lo damos al asignarlo) y mira cómo va.</p>
+            <div class="form-group">
+                <label for="codigo-trabajo">Código del trabajo (8 caracteres)</label>
+                <input id="codigo-trabajo" type="text" maxlength="12" placeholder="Ej: SP-4A9C21">
+            </div>
+            <button class="btn-main btn-form" onclick="seguirTrabajo()">Buscar mi trabajo</button>
+            <div id="resultado-seguir"></div>
+            <p class="form-aviso">¿Eres contratista y tienes un código de acceso? <a href="javascript:void(0)" onclick="irA('entrar')">Entra por aquí</a>.</p>
+        </div>
+    </div>
+</section>
+
+<!-- ================= CARTEL DE DEMO PROGRAMADA ================= -->
+<div class="modal" id="modal-demo">
+    <div class="modal-caja">
+        <h3>Programa tu demo</h3>
+        <p class="subtitle" style="text-align:left;">Dinos cómo quieres la demo y te escribimos para cuadrar la hora.</p>
+        <form id="form-demo" action="https://formsubmit.co/sinclairpickuptrucks@gmail.com" method="POST" onsubmit="return enviarDemo(event)">
+            <input type="hidden" name="_subject" value="Demo programada desde la web de Sinclair">
+            <input type="hidden" name="_captcha" value="false">
+            <input type="hidden" name="_template" value="table">
+            <div class="form-group">
+                <label for="demo-tipo">Tipo de demo</label>
+                <select id="demo-tipo" name="Tipo de demo">
+                    <option>Virtual</option>
+                    <option>Demo por videollamada</option>
+                    <option>Demo presencial</option>
+                </select>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="demo-correo">Dirección de correo electrónico *</label>
+                    <input id="demo-correo" name="Correo" type="email" placeholder="tu@email.com" required>
+                </div>
+                <div class="form-group">
+                    <label for="demo-telefono">Número de teléfono *</label>
+                    <input id="demo-telefono" name="Telefono" type="tel" placeholder="(555) 555-5555" required>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="demo-empresa">Nombre de la empresa *</label>
+                <input id="demo-empresa" name="Empresa" type="text" placeholder="Nombre de tu empresa" required>
+            </div>
+            <div class="form-group">
+                <label for="demo-negocio">Cuéntanos sobre tu negocio *</label>
+                <textarea id="demo-negocio" name="Negocio" rows="3" required placeholder="Esto nos ayuda a adaptar la demo a tus necesidades."></textarea>
+            </div>
+            <div class="form-group">
+                <label for="demo-fecha">Fecha y hora preferidas (opcional)</label>
+                <input id="demo-fecha" name="Fecha" type="datetime-local">
+            </div>
+            <div style="display:flex;gap:10px;flex-wrap:wrap;">
+                <button type="button" class="btn-main btn-borde" onclick="cerrarDemo()">Cancelar</button>
+                <button type="submit" class="btn-main">Demo programada</button>
+            </div>
+        </form>
+        <div id="resultado-demo"></div>
+    </div>
+</div>
+
+<footer class="footer-principal" style="text-align:center;padding:26px 16px;color:#64748b;">
+    <p>Sinclair Pickup Trucks · 2719 Leon Rd, Jacksonville, Florida 32246 · WhatsApp 904-667-2123</p>
+    <p><a href="index.html" style="color:#ff6b00;">Inicio</a> · <a href="index.html#precio" style="color:#ff6b00;">Precio al Instante</a> · <a href="en.html" style="color:#ff6b00;">English</a></p>
+    <p style="font-size:.85rem;">Versión de prueba: las cuentas se guardan en este navegador. La versión con
+    cuentas reales (códigos por correo) se conecta al cuaderno de la empresa.</p>
+</footer>
+
+<script>
+/* ==========================================================================
+   SISTEMA DE CUENTAS — PROTOTIPO (16-oct-2026)
+   Version de prueba: los datos se guardan en este navegador (localStorage).
+   La version de verdad (cuaderno en Google + codigos por correo) se conecta
+   despues sin cambiar nada de estas pantallas.
+   ========================================================================== */
+var LLAVE = 'sinclair_cuentas_v1';
+var LLAVE_CODIGOS = 'sinclair_codigos_v1';
+var papelElegido = '';
+var codigoPendiente = null;
+
+function leer(clave, porDefecto) {
+  try { var t = localStorage.getItem(clave); return t ? JSON.parse(t) : porDefecto; }
+  catch (e) { return porDefecto; }
+}
+function guardar(clave, valor) {
+  try { localStorage.setItem(clave, JSON.stringify(valor)); } catch (e) {}
+}
+function normaliza(t) {
+  return (t || '').toString().toLowerCase().replace(/[\s\-\(\)\.\+]/g, '')
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+}
+function limpio(t) { return (t || '').toString().trim(); }
+function escapar(t) {
+  return (t || '').toString().replace(/&/g, 'y').replace(/</g, '(').replace(/>/g, ')');
+}
+function ahora() { return new Date().toISOString(); }
+function fechaBonita(iso) {
+  try { return new Date(iso).toLocaleString('es-US', {dateStyle: 'short', timeStyle: 'short'}); }
+  catch (e) { return iso; }
+}
+
+/* ---------- navegacion entre las tres vistas ---------- */
+function irA(vista) {
+  ['crear', 'entrar', 'seguir'].forEach(function (v) {
+    document.getElementById('vista-' + v).classList.add('oculto');
+    document.getElementById('pestana-' + v).classList.remove('activa');
+  });
+  document.getElementById('vista-' + vista).classList.remove('oculto');
+  var p = document.getElementById('pestana-' + vista);
+  if (p) p.classList.add('activa');
+  window.scrollTo({top: 250, behavior: 'smooth'});
+}
+
+/* ---------- elegir el tipo de cuenta ---------- */
+function elegirPapel(papel) {
+  papelElegido = papel;
+  var botones = document.querySelectorAll('#tipos .tipo');
+  for (var i = 0; i < botones.length; i++) {
+    botones[i].classList.toggle('elegido', botones[i].getAttribute('data-papel') === papel);
+  }
+  var esConductor = (papel === 'piloto');
+  document.getElementById('campos-conductor').classList.toggle('oculto', !esConductor);
+  document.getElementById('fila-empresa').classList.toggle('oculto', papel === 'cliente' || esConductor);
+}
+
+/* ---------- crear la cuenta ---------- */
+function crearCuenta(ev) {
+  ev.preventDefault();
+  var cuentas = leer(LLAVE, []);
+  var telefono = limpio(document.getElementById('telefono').value);
+  var correo = limpio(document.getElementById('correo').value);
+  var clave = document.getElementById('clave').value;
+  var clave2 = document.getElementById('clave2').value;
+  var salida = document.getElementById('resultado-crear');
+
+  if (!papelElegido) { salida.innerHTML = '<div class="linea-ojo">Primero elige qué eres: corredor, compañía, cliente o piloto.</div>'; return false; }
+  if (clave.length < 8) { salida.innerHTML = '<div class="linea-ojo">La contraseña debe tener al menos 8 caracteres.</div>'; return false; }
+  if (clave !== clave2) { salida.innerHTML = '<div class="linea-ojo">Las dos contraseñas no son iguales.</div>'; return false; }
+  if (!document.getElementById('acuse').checked) { salida.innerHTML = '<div class="linea-ojo">Falta firmar el acuse de la política de seguimiento de ubicación.</div>'; return false; }
+
+  var repetida = cuentas.find(function (c) {
+    return normaliza(c.telefono) === normaliza(telefono) || normaliza(c.correo) === normaliza(correo);
+  });
+  if (repetida) {
+    salida.innerHTML = '<div class="linea-ojo">Ya existe una cuenta con ese teléfono o correo (' +
+      escapar(repetida.nombre) + '). <a href="javascript:void(0)" onclick="irA(\'entrar\')">Entra por aquí</a>.</div>';
+    return false;
+  }
+
+  var nueva = {
+    tipo: (papelElegido === 'piloto') ? 'conductor' : 'empresa',
+    papel: papelElegido,
+    empresa: limpio(document.getElementById('empresa').value),
+    nombre: limpio(document.getElementById('nombre').value),
+    apellido: limpio(document.getElementById('apellido').value),
+    telefono: telefono,
+    correo: correo,
+    clave: 'simple:' + btoa(unescape(encodeURIComponent(clave))).slice(0, 24),
+    vehiculo: limpio(document.getElementById('vehiculo').value),
+    licencia: limpio(document.getElementById('licencia').value),
+    zona: limpio(document.getElementById('zona').value),
+    seguro: limpio(document.getElementById('seguro').value),
+    acuse_ubicacion: ahora(),
+    alta: ahora(),
+    ultimo_ingreso: null,
+    ingresos: 0,
+    estado: (papelElegido === 'piloto') ? 'pendiente de aprobación' : 'activo'
+  };
+  cuentas.push(nueva);
+  guardar(LLAVE, cuentas);
+
+  salida.innerHTML = '<div class="linea-ok"><b>¡Cuenta creada, ' + escapar(nueva.nombre) + '!</b><br>' +
+    'Te registramos como <b>' + nombrePapel(nueva.papel) + '</b>' +
+    (nueva.estado === 'pendiente de aprobación'
+      ? '. Un conductor nuevo queda <b>pendiente de aprobación</b>: la empresa revisa tus datos y te avisa.'
+      : '.') +
+    '<br><small>Firmaste el acuse de la política de seguimiento de ubicación el ' + fechaBonita(nueva.acuse_ubicacion) + '.</small></div>' +
+    '<button class="btn-main btn-form" onclick="irA(\'entrar\')">Entrar ahora</button>';
+  document.getElementById('form-crear').reset();
+  return false;
+}
+
+function nombrePapel(papel) {
+  var nombres = {corredor: 'Corredor', compania: 'Compañía de Transporte', cliente: 'Cliente / negocio', piloto: 'Piloto (conductor)'};
+  return nombres[papel] || papel;
+}
+
+/* ---------- entrar: reconocer al que vuelve y mandar codigo ---------- */
+function buscarCuenta(dato) {
+  var cuentas = leer(LLAVE, []);
+  var d = normaliza(dato);
+  if (d.length < 3) return null;
+  return cuentas.find(function (c) {
+    return normaliza(c.telefono) === d || normaliza(c.correo) === d ||
+           normaliza(c.nombre + ' ' + c.apellido) === d || normaliza(c.nombre) === d ||
+           normaliza(c.correo.split('@')[0]) === d;
+  }) || null;
+}
+
+function nuevoCodigo() {
+  return String(Math.floor(100000 + Math.random() * 900000));
+}
+
+function pedirCodigo(esReenvio) {
+  var dato = limpio(document.getElementById('quien').value);
+  var salida = document.getElementById('resultado-entrar');
+  var caja = document.getElementById('paso-codigo');
+  salida.innerHTML = '';
+  if (!dato) { salida.innerHTML = '<div class="linea-ojo">Escribe tu nombre, teléfono o correo.</div>'; return; }
+
+  var cuenta = buscarCuenta(dato);
+  if (!cuenta) {
+    salida.innerHTML = '<div class="linea-ojo">No te encuentro con ese dato. ' +
+      'Si eres nuevo, <a href="javascript:void(0)" onclick="irA(\'crear\')">crea tu cuenta aquí</a>.</div>';
+    return;
+  }
+  var codigo = nuevoCodigo();
+  codigoPendiente = {codigo: codigo, cuenta: cuenta, vence: Date.now() + 10 * 60 * 1000};
+  var codigos = leer(LLAVE_CODIGOS, {});
+  codigos[normaliza(cuenta.telefono)] = {codigo: codigo, vence: codigoPendiente.vence};
+  guardar(LLAVE_CODIGOS, codigos);
+
+  caja.classList.remove('oculto');
+  document.getElementById('aviso-codigo').innerHTML =
+    (esReenvio ? '<b>Te mandamos otro código.</b><br>' : '') +
+    'Te reconozco: <b>' + escapar(cuenta.nombre + ' ' + cuenta.apellido) + '</b> (' + nombrePapel(cuenta.papel) + ').' +
+    '<br>En la versión de verdad el código llega a tu correo <b>' + escapar(cuenta.correo) + '</b> ' +
+    '(o a tu WhatsApp). <b>En esta prueba el código es:</b><div class="codigo">' + codigo + '</div>' +
+    '<small>Vale 10 minutos y solo sirve una vez.</small>';
+}
+
+function confirmarCodigo() {
+  var escrito = limpio(document.getElementById('codigo').value);
+  var salida = document.getElementById('resultado-entrar');
+  if (!codigoPendiente) { salida.innerHTML = '<div class="linea-ojo">Primero pide tu código.</div>'; return; }
+  if (Date.now() > codigoPendiente.vence) { salida.innerHTML = '<div class="linea-ojo">El código caducó. Pide otro.</div>'; return; }
+  if (escrito !== codigoPendiente.codigo) { salida.innerHTML = '<div class="linea-ojo">Ese código no es. Fíjate bien en los 6 números.</div>'; return; }
+
+  var cuentas = leer(LLAVE, []);
+  var c = cuentas.find(function (x) { return normaliza(x.telefono) === normaliza(codigoPendiente.cuenta.telefono); });
+  var esVuelta = false;
+  if (c) {
+    esVuelta = (c.ingresos || 0) > 0;
+    c.ingresos = (c.ingresos || 0) + 1;
+    c.ultimo_ingreso = ahora();
+    guardar(LLAVE, cuentas);
+  }
+  codigoPendiente = null;
+  document.getElementById('paso-codigo').classList.add('oculto');
+  salida.innerHTML = '<div class="linea-ok"><b>¡Adelante, ' + escapar(c ? c.nombre : '') + '!</b><br>' +
+    'Eres ' + (esVuelta ? '<b>un usuario que vuelve</b>' : '<b>un usuario que entra por primera vez</b>') +
+    ' y tu cuenta es de <b>' + nombrePapel(c ? c.papel : '') + '</b>.' +
+    (c && c.estado === 'pendiente de aprobación' ? '<br><b>Tu cuenta de conductor está pendiente de aprobación.</b>' : '') +
+    (c && c.tipo === 'conductor'
+      ? '<br>Tu panel de conductor: tus trabajos asignados, la entrega y el botón de <b>entregado</b>.'
+      : '<br>Tu panel de pedidos: pedir un servicio, seguirlo y ver tus cotizaciones.') +
+    '<br><small>Última entrada: ' + fechaBonita(c ? c.ultimo_ingreso : ahora()) + ' · Entradas: ' + (c ? c.ingresos : 1) + '</small></div>';
+}
+
+function olvide() {
+  irA('entrar');
+  document.getElementById('resultado-entrar').innerHTML =
+    '<div class="linea-ojo">No hace falta contraseña para entrar: escribe tu nombre, teléfono o correo arriba y te mandamos un código.</div>';
+}
+
+function cambiarDatos() {
+  document.getElementById('quien').value = '';
+  document.getElementById('paso-codigo').classList.add('oculto');
+  document.getElementById('resultado-entrar').innerHTML = '<div class="linea-ojo">Escribe tu otro número o correo y le mandamos el código ahí.</div>';
+}
+
+/* ---------- seguir un trabajo (codigo de 8 caracteres) ---------- */
+function seguirTrabajo() {
+  var codigo = limpio(document.getElementById('codigo-trabajo').value).toUpperCase();
+  var salida = document.getElementById('resultado-seguir');
+  if (codigo.length < 6) { salida.innerHTML = '<div class="linea-ojo">Escribe el código completo del trabajo.</div>'; return; }
+  var trabajos = leer('sinclair_trabajos_v1', []);
+  var t = trabajos.find(function (x) { return (x.codigo || '').toUpperCase() === codigo; });
+  if (!t) {
+    salida.innerHTML = '<div class="linea-ojo">No encuentro ese trabajo. Revisa el código o pregúntanos por WhatsApp al 904-667-2123.</div>';
+    return;
+  }
+  salida.innerHTML = '<div class="linea-ok"><b>Trabajo ' + escapar(t.codigo) + '</b><br>' +
+    'Estado: <b>' + escapar(t.estado) + '</b><br>' + escapar(t.detalle || '') + '</div>';
+}
+
+/* ---------- demo programada ---------- */
+function abrirDemo() { document.getElementById('modal-demo').classList.add('abierto'); }
+function cerrarDemo() { document.getElementById('modal-demo').classList.remove('abierto'); }
+function enviarDemo(ev) {
+  /* Se manda por correo a la empresa (formulario ya existente) Y se apunta aqui. */
+  var demos = leer('sinclair_demos_v1', []);
+  demos.push({
+    tipo: document.getElementById('demo-tipo').value,
+    correo: document.getElementById('demo-correo').value,
+    telefono: document.getElementById('demo-telefono').value,
+    empresa: document.getElementById('demo-empresa').value,
+    negocio: document.getElementById('demo-negocio').value,
+    fecha: document.getElementById('demo-fecha').value,
+    cuando: ahora()
+  });
+  guardar('sinclair_demos_v1', demos);
+  document.getElementById('resultado-demo').innerHTML =
+    '<div class="linea-ok">¡Gracias! Recibimos tu pedido de demo y te escribimos para cuadrar la hora.</div>';
+  setTimeout(function () { cerrarDemo(); }, 2500);
+  return true; /* sigue el envio normal del formulario por correo */
+}
+</script>
+</body>
+</html>
