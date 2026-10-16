@@ -278,24 +278,24 @@
          AVISO: la primera vez, ese correo recibe un mensaje para ACTIVAR el
          formulario; hasta que se active, los envios no llegan.
          ================================================================== -->
-<!-- PRECIOS:INICIO  (lo escribe C:\Jarvis\tools\poner-precios-web.py: los numeros salen de
+<!-- PRECIOS:INICIO  (lo escribe C:\Jarvis\tools\poner-precios-web.py con los numeros de
      C:\Jarvis\datos\precios-sinclair.json. NO editar a mano.) -->
 <section id="precio" class="cotizar-section" style="background:#f8fafc;">
     <div class="section-title">
         <h2>Precio al Instante</h2>
         <div class="line"></div>
-        <p class="subtitle">Traslados locales en Jacksonville y zonas contiguas (hasta 15 millas). Elige lo que necesitas y mira tu precio ahora mismo. Si prefieres que te lo confirmemos, escríbenos por WhatsApp.</p>
+        <p class="subtitle">Traslados locales en Jacksonville y zonas contiguas (condado de Duval y hasta 100 millas) (hasta 15 millas). Elige lo que necesitas y mira tu precio ahora mismo. Si prefieres que te lo confirmemos, escríbenos por WhatsApp.</p>
     </div>
     <div class="cotizar-form" style="max-width:780px;margin:0 auto;">
         <div class="form-row">
             <div class="form-group">
                 <label for="pc-servicio">¿Qué hay que mover? *</label>
                 <select id="pc-servicio">
-            <option value="mueble_individual">Mueble o carga individual ($50 - $60)</option>
-            <option value="mueble_voluminoso">Mueble voluminoso o mediano ($70 - $80)</option>
-            <option value="lote_pequeno">Lote pequeño / cargas múltiples ($90 - $120)</option>
-            <option value="materiales_construccion">Materiales de construcción y madera ($70 - $80)</option>
-            <option value="carga_general">Carga general / compras grandes ($60 - $80)</option>
+                    <option value="mueble_individual">Mueble o carga individual ($50 - $60)</option>
+                    <option value="mueble_voluminoso">Mueble voluminoso o mediano ($70 - $80)</option>
+                    <option value="lote_pequeno">Lote pequeño / cargas múltiples ($90 - $120)</option>
+                    <option value="materiales_construccion">Materiales de construcción y madera ($70 - $80)</option>
+                    <option value="carga_general">Carga general / compras grandes ($60 - $80)</option>
                 </select>
             </div>
             <div class="form-group">
@@ -326,12 +326,12 @@
     </div>
 </section>
 <script>
-/* Tarifas de Sinclair Pickup Trucks (las mismas de precios-sinclair.json) */
-var PRECIOS = {"suelo": 50, "radio": 15, "redondeo": 5, "milla": 2.0, "escaleras": 15, "ayudante": 30, "expreso": 15, "servicios": {"mueble_individual": {"nombre": "Mueble o carga individual", "min": 50, "tipico": 60, "max": 60, "incluidos": 1}, "mueble_voluminoso": {"nombre": "Mueble voluminoso o mediano", "min": 70, "tipico": 75, "max": 80, "incluidos": 2}, "lote_pequeno": {"nombre": "Lote pequeño / cargas múltiples", "min": 90, "tipico": 105, "max": 120, "incluidos": 1}, "materiales_construccion": {"nombre": "Materiales de construcción y madera", "min": 70, "tipico": 75, "max": 80, "incluidos": 1}, "carga_general": {"nombre": "Carga general / compras grandes", "min": 60, "tipico": 60, "max": 80, "incluidos": 1}}};
+/* Sinclair Pickup Trucks - tarifas oficiales (las mismas de precios-sinclair.json) */
+var PRECIOS = {"suelo": 50, "radio": 15, "redondeo": 5, "milla": 2.0, "escaleras": 15, "ayudante": 30, "expreso": 15, "textos": {"base": "Tarifa base", "millas": "Millas adicionales", "escaleras": "Escaleras sin elevador", "ayudante_l": "Segundo ayudante", "expreso_l": "Urgente / fuera de horario", "descarga_l": "Descarga manual", "incluye": "Incluye recogida, amarre de la carga y entrega en planta baja, hasta {radio} millas.", "por_milla": "${milla} por milla fuera del radio.", "por_piso": "${escaleras} por piso.", "ayudante_d": "Para muebles que una sola persona no puede mover con seguridad.", "urgente_d": "Por prioridad.", "piso_d": "Va dentro de la tarifa de este servicio.", "total": "Total:", "wa": "Pedir por WhatsApp", "wa_msg": "Hola, quiero el servicio de {servicio}. Millas: {millas}. Piso: {pisos}{extras}. En la web me sale ${total}.", "wa_urgente": ". Es urgente", "wa_ayudante": ". Necesita segundo ayudante", "wa_elevador": " (con elevador)", "resultado": "Tu precio estimado"}, "servicios": {"mueble_individual": {"nombre": "Mueble o carga individual", "tipico": 60, "incluidos": 1}, "mueble_voluminoso": {"nombre": "Mueble voluminoso o mediano", "tipico": 75, "incluidos": 2}, "lote_pequeno": {"nombre": "Lote pequeño / cargas múltiples", "tipico": 105, "incluidos": 1}, "materiales_construccion": {"nombre": "Materiales de construcción y madera", "tipico": 75, "incluidos": 1}, "carga_general": {"nombre": "Carga general / compras grandes", "tipico": 60, "incluidos": 1}}};
 var WA = "9046672123";
 function calcularPrecio() {
   var clave = document.getElementById('pc-servicio').value;
-  var s = PRECIOS.servicios[clave];
+  var s = PRECIOS.servicios[clave], T = PRECIOS.textos;
   var millas = parseFloat(document.getElementById('pc-millas').value || 0) || 0;
   var pisos = parseInt(document.getElementById('pc-pisos').value || 1) || 1;
   var elevador = document.getElementById('pc-elevador').checked;
@@ -339,21 +339,22 @@ function calcularPrecio() {
   var expreso = document.getElementById('pc-expreso').checked;
   var lineas = [], suma = 0;
   function add(t, v, d) { if (v > 0) { lineas.push([t, v, d]); suma += v; } }
-  add('Tarifa base: ' + s.nombre, s.tipico, 'Incluye recogida, amarre de la carga y entrega en planta baja, hasta ' + PRECIOS.radio + ' millas.');
+  add(T.base + ': ' + s.nombre, s.tipico, T.incluye.replace('{radio}', PRECIOS.radio));
   if (millas > PRECIOS.radio) {
-    add('Millas adicionales (' + (millas - PRECIOS.radio).toFixed(0) + ' millas)', (millas - PRECIOS.radio) * PRECIOS.milla,
-        '$' + PRECIOS.milla.toFixed(2) + ' por milla fuera del radio.');
+    add(T.millas + ' (' + (millas - PRECIOS.radio).toFixed(0) + ')', (millas - PRECIOS.radio) * PRECIOS.milla,
+        T.por_milla.replace('{milla}', PRECIOS.milla.toFixed(2)));
   }
   if (pisos >= 2 && !elevador) {
     var cuantos = pisos - (s.incluidos || 1);
-    if (cuantos > 0) add('Escaleras sin elevador (' + cuantos + ' piso' + (cuantos > 1 ? 's' : '') + ')',
-                         cuantos * PRECIOS.escaleras, '$' + PRECIOS.escaleras + ' por piso.');
+    if (cuantos > 0) add(T.escaleras + ' (' + cuantos + ')', cuantos * PRECIOS.escaleras,
+                         T.por_piso.replace('{escaleras}', PRECIOS.escaleras));
+    else add(T.escaleras + ': 0', 0, T.piso_d);
   }
-  if (ayudante) add('Segundo ayudante', PRECIOS.ayudante, 'Para muebles que una sola persona no puede mover con seguridad.');
-  if (expreso) add('Urgente / fuera de horario', PRECIOS.expreso, 'Por prioridad.');
+  if (ayudante) add(T.ayudante_l, PRECIOS.ayudante, T.ayudante_d);
+  if (expreso) add(T.expreso_l, PRECIOS.expreso, T.urgente_d);
   var total = Math.ceil(suma / PRECIOS.redondeo) * PRECIOS.redondeo;
-  if (total < PRECIOS.suelo) { total = PRECIOS.suelo; }
-  var h = '<h3 style="margin-bottom:12px;">Tu precio estimado</h3>';
+  if (total < PRECIOS.suelo) total = PRECIOS.suelo;
+  var h = '<h3 style="margin-bottom:12px;">' + T.resultado + '</h3>';
   h += '<table style="width:100%;border-collapse:collapse;">';
   for (var i = 0; i < lineas.length; i++) {
     h += '<tr><td style="padding:6px 0;border-bottom:1px solid #f1f5f9;">' + lineas[i][0] +
@@ -362,12 +363,12 @@ function calcularPrecio() {
          lineas[i][1].toFixed(2) + '</b></td></tr>';
   }
   h += '</table>';
-  h += '<p style="font-size:1.6rem;font-weight:800;margin:14px 0 4px;">Total: $' + total.toFixed(2) + ' USD</p>';
-  var texto = 'Hola, quiero el servicio de ' + s.nombre + '. Millas: ' + millas + '. Piso: ' + pisos +
-              (elevador ? ' (con elevador)' : '') + (ayudante ? '. Necesita segundo ayudante' : '') +
-              (expreso ? '. Es urgente' : '') + '. En la web me sale $' + total.toFixed(2) + '.';
+  h += '<p style="font-size:1.6rem;font-weight:800;margin:14px 0 4px;">' + T.total + ' $' + total.toFixed(2) + ' USD</p>';
+  var texto = T.wa_msg.replace('{servicio}', s.nombre).replace('{millas}', millas).replace('{pisos}', pisos)
+              .replace('{extras}', (elevador ? T.wa_elevador : '') + (ayudante ? T.wa_ayudante : '') +
+                                   (expreso ? T.wa_urgente : '')).replace('{total}', total.toFixed(2));
   h += '<a class="btn-main" style="display:inline-block;margin-top:10px;text-decoration:none;" target="_blank" rel="noopener" href="https://wa.me/' +
-       WA + '?text=' + encodeURIComponent(texto) + '">Pedir por WhatsApp</a>';
+       WA + '?text=' + encodeURIComponent(texto) + '">' + T.wa + '</a>';
   var caja = document.getElementById('pc-resultado');
   caja.innerHTML = h;
   caja.style.display = 'block';
