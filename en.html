@@ -53,7 +53,7 @@
                 </div>
                 <div class="card-footer-title"><span class="icon">⚡</span><h3>Courier &amp; Same-Day Delivery</h3></div>
                 <p style="padding:14px 18px 0;">Palletized freight, critical parts and commercial packages, delivered the same day across Jacksonville. Up to 14,000 lbs per trip.</p>
-                <p style="padding:12px 18px 18px;"><a href="index.html" class="btn-main" style="display:inline-block;padding:10px 18px;">See service (ES)</a></p>
+                <p style="padding:12px 18px 18px;"><a href="en-mensajeria.html" class="btn-main" style="display:inline-block;padding:10px 18px;">See service</a></p>
             </div>
             <div class="card">
                 <div class="card-image-wrapper">
@@ -61,7 +61,7 @@
                 </div>
                 <div class="card-footer-title"><span class="icon">🏠</span><h3>Home &amp; Office Moving</h3></div>
                 <p style="padding:14px 18px 0;">Loading, furniture protection and unloading included. Flat price quoted before we start — no surprises at the end.</p>
-                <p style="padding:12px 18px 18px;"><a href="index.html" class="btn-main" style="display:inline-block;padding:10px 18px;">See service (ES)</a></p>
+                <p style="padding:12px 18px 18px;"><a href="en-mudanzas.html" class="btn-main" style="display:inline-block;padding:10px 18px;">See service</a></p>
             </div>
             <div class="card">
                 <div class="card-image-wrapper">
@@ -69,7 +69,7 @@
                 </div>
                 <div class="card-footer-title"><span class="icon">🏗️</span><h3>Construction Materials to the Job Site</h3></div>
                 <p style="padding:14px 18px 0;">Lumber, pipe, cement, steel structure and oversized items delivered right where your crew is working. Trailers up to 40 ft.</p>
-                <p style="padding:12px 18px 18px;"><a href="index.html" class="btn-main" style="display:inline-block;padding:10px 18px;">See service (ES)</a></p>
+                <p style="padding:12px 18px 18px;"><a href="en-materiales.html" class="btn-main" style="display:inline-block;padding:10px 18px;">See service</a></p>
             </div>
             <div class="card">
                 <div class="card-image-wrapper">
@@ -77,7 +77,7 @@
                 </div>
                 <div class="card-footer-title"><span class="icon">🚛</span><h3>Oversized &amp; High-Volume Loads</h3></div>
                 <p style="padding:14px 18px 0;">Machinery, industrial pallets and oversized pieces with Grade 70 ratchet straps and chains. Up to 14,000 lbs.</p>
-                <p style="padding:12px 18px 18px;"><a href="index.html" class="btn-main" style="display:inline-block;padding:10px 18px;">See service (ES)</a></p>
+                <p style="padding:12px 18px 18px;"><a href="en-carga-pesada.html" class="btn-main" style="display:inline-block;padding:10px 18px;">See service</a></p>
             </div>
         </div>
     </section>
@@ -164,7 +164,7 @@
 <script>
 /* Sinclair Pickup Trucks - tarifas oficiales (las mismas de precios-sinclair.json) */
 var PRECIOS = {"suelo": 50, "radio": 15, "redondeo": 5, "milla": 2.0, "escaleras": 15, "ayudante": 30, "expreso": 15, "textos": {"base": "Base rate", "millas": "Additional miles", "escaleras": "Stairs without elevator", "ayudante_l": "Second helper", "expreso_l": "Urgent / after hours", "descarga_l": "Manual unloading", "incluye": "Includes pickup, load strapping and delivery to ground floor, up to {radio} miles.", "por_milla": "${milla} per mile beyond the local radius.", "por_piso": "${escaleras} per floor.", "ayudante_d": "For items one person cannot handle safely.", "urgente_d": "Priority service.", "piso_d": "Already included in this service rate.", "total": "Total:", "wa": "Order on WhatsApp", "wa_msg": "Hi, I would like the service: {servicio}. Miles: {millas}. Floor: {pisos}{extras}. The website shows ${total}.", "wa_urgente": ". It is urgent", "wa_ayudante": ". Needs a second helper", "wa_elevador": " (with elevator)", "resultado": "Your estimated price"}, "servicios": {"mueble_individual": {"nombre": "Single item / piece of furniture", "tipico": 60, "incluidos": 1}, "mueble_voluminoso": {"nombre": "Large furniture or appliance", "tipico": 75, "incluidos": 2}, "lote_pequeno": {"nombre": "Small lot / multiple items", "tipico": 105, "incluidos": 1}, "materiales_construccion": {"nombre": "Construction materials and lumber", "tipico": 75, "incluidos": 1}, "carga_general": {"nombre": "General cargo / large purchases", "tipico": 60, "incluidos": 1}}};
-var WA = "9046672123";
+var WA = "19046672123";
 function calcularPrecio() {
   var clave = document.getElementById('pc-servicio').value;
   var s = PRECIOS.servicios[clave], T = PRECIOS.textos;
