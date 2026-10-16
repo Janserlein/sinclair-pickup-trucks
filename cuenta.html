@@ -249,7 +249,7 @@
 <footer class="footer-principal" style="text-align:center;padding:26px 16px;color:#64748b;">
     <p>Sinclair Pickup Trucks · 2719 Leon Rd, Jacksonville, Florida 32246 · WhatsApp 904-667-2123</p>
     <p><a href="index.html" style="color:#ff6b00;">Inicio</a> · <a href="index.html#precio" style="color:#ff6b00;">Precio al Instante</a> · <a href="en.html" style="color:#ff6b00;">English</a></p>
-    <p style="font-size:.85rem;">Versión de prueba: las cuentas se guardan en este navegador. La versión con
+    <p style="font-size:.85rem;" id="nota-version">Versión de prueba: las cuentas se guardan en este navegador. La versión con
     cuentas reales (códigos por correo) se conecta al cuaderno de la empresa.</p>
 </footer>
 
@@ -261,9 +261,27 @@
    despues sin cambiar nada de estas pantallas.
    ========================================================================== */
 var LLAVE = 'sinclair_cuentas_v1';
+/* ===== EL CUADERNO DE LA EMPRESA (opcional) =====
+   Cuando el dueno monte la hoja de Google, se pega aqui su direccion (termina en /exec).
+   Mientras este vacio, la pagina funciona en modo maqueta (guarda en este navegador). */
+var CUADERNO = '';
+function usarCuaderno() { return CUADERNO && CUADERNO.indexOf('http') === 0; }
+function llamarCuaderno(datos, alRecibir, alFallar) {
+  if (!usarCuaderno()) { if (alFallar) alFallar('sin cuaderno'); return; }
+  fetch(CUADERNO, {method: 'POST', body: JSON.stringify(datos)})
+    .then(function (r) { return r.json(); })
+    .then(function (resp) { if (alRecibir) alRecibir(resp); })
+    .catch(function (e) { if (alFallar) alFallar(e); });
+}
 var LLAVE_CODIGOS = 'sinclair_codigos_v1';
 var papelElegido = '';
 var codigoPendiente = null;
+window.addEventListener('load', function () {
+  var n = document.getElementById('nota-version');
+  if (n && usarCuaderno()) {
+    n.innerHTML = 'Las cuentas se guardan en el cuaderno de la empresa (hoja de Google) y el código de entrar llega al correo.';
+  }
+});
 
 function leer(clave, porDefecto) {
   try { var t = localStorage.getItem(clave); return t ? JSON.parse(t) : porDefecto; }
@@ -355,6 +373,18 @@ function crearCuenta(ev) {
   };
   cuentas.push(nueva);
   guardar(LLAVE, cuentas);
+  if (usarCuaderno()) {
+    llamarCuaderno({accion: 'crear', papel: nueva.papel, empresa: nueva.empresa, nombre: nueva.nombre,
+      apellido: nueva.apellido, telefono: nueva.telefono, correo: nueva.correo, clave: clave,
+      acuse_ubicacion: true, vehiculo: nueva.vehiculo, licencia: nueva.licencia,
+      zona: nueva.zona, seguro: nueva.seguro}, function (r) {
+        if (r && r.ok === false) {
+          salida.innerHTML += '<div class="linea-ojo">El cuaderno de la empresa dice: ' + escapar(r.mensaje || '') + '</div>';
+        } else {
+          salida.innerHTML += '<div class="linea-ok">Guardado en el cuaderno de la empresa.</div>';
+        }
+      });
+  }
 
   salida.innerHTML = '<div class="linea-ok"><b>¡Cuenta creada, ' + escapar(nueva.nombre) + '!</b><br>' +
     'Te registramos como <b>' + nombrePapel(nueva.papel) + '</b>' +
@@ -414,6 +444,19 @@ function pedirCodigo(esReenvio) {
     '<br>En la versión de verdad el código llega a tu correo <b>' + escapar(cuenta.correo) + '</b> ' +
     '(o a tu WhatsApp). <b>En esta prueba el código es:</b><div class="codigo">' + codigo + '</div>' +
     '<small>Vale 10 minutos y solo sirve una vez.</small>';
+  if (usarCuaderno()) {
+    llamarCuaderno({accion: 'reconocer', quien: dato}, function (r) {
+      if (r && r.ok) {
+        document.getElementById('aviso-codigo').innerHTML =
+          'Te reconozco: <b>' + escapar(r.nombre + ' ' + r.apellido) + '</b> (' + nombrePapel(r.papel) + ').' +
+          '<br>Te mandamos un <b>codigo de 6 digitos</b> a <b>' + escapar(r.correo || r.telefono || 'tu correo') + '</b>.' +
+          '<br><small>Vale 10 minutos y solo sirve una vez. Lo manda el cuaderno de la empresa.</small>';
+      } else {
+        document.getElementById('aviso-codigo').innerHTML =
+          '<div class="linea-ojo">' + escapar((r && r.mensaje) || 'No pude mandar el codigo.') + '</div>';
+      }
+    }, function () { /* sin cuaderno: se queda el codigo en pantalla */ });
+  }
 }
 
 function confirmarCodigo() {
@@ -421,6 +464,19 @@ function confirmarCodigo() {
   var salida = document.getElementById('resultado-entrar');
   if (!codigoPendiente) { salida.innerHTML = '<div class="linea-ojo">Primero pide tu código.</div>'; return; }
   if (Date.now() > codigoPendiente.vence) { salida.innerHTML = '<div class="linea-ojo">El código caducó. Pide otro.</div>'; return; }
+  if (usarCuaderno()) {
+    var cTel = codigoPendiente.cuenta.telefono;
+    llamarCuaderno({accion: 'verificar', telefono: cTel, codigo: escrito}, function (r) {
+      if (r && r.ok) {
+        pasarAdentro(r.nombre, r.papel, r.tipo, r.estado, r.vuelve ? 2 : 1);
+      } else {
+        salida.innerHTML = '<div class="linea-ojo">' + escapar((r && r.mensaje) || 'Ese codigo no es.') + '</div>';
+      }
+    }, function () {
+      salida.innerHTML = '<div class="linea-ojo">No pude hablar con el cuaderno de la empresa. Intenta otra vez.</div>';
+    });
+    return;
+  }
   if (escrito !== codigoPendiente.codigo) { salida.innerHTML = '<div class="linea-ojo">Ese código no es. Fíjate bien en los 6 números.</div>'; return; }
 
   var cuentas = leer(LLAVE, []);
@@ -444,6 +500,20 @@ function confirmarCodigo() {
     '<br><small>Última entrada: ' + fechaBonita(c ? c.ultimo_ingreso : ahora()) + ' · Entradas: ' + (c ? c.ingresos : 1) + '</small></div>';
 }
 
+function pasarAdentro(nombre, papel, tipo, estado, entradas) {
+  codigoPendiente = null;
+  document.getElementById('paso-codigo').classList.add('oculto');
+  var vuelve = (entradas || 1) > 1;
+  document.getElementById('resultado-entrar').innerHTML =
+    '<div class="linea-ok"><b>¡Adelante, ' + escapar(nombre) + '!</b><br>' +
+    'Eres ' + (vuelve ? '<b>un usuario que vuelve</b>' : '<b>un usuario que entra por primera vez</b>') +
+    ' y tu cuenta es de <b>' + nombrePapel(papel) + '</b>.' +
+    (estado && estado.indexOf('pendiente') === 0 ? '<br><b>Tu cuenta de conductor está pendiente de aprobación.</b>' : '') +
+    (tipo === 'conductor'
+      ? '<br>Tu panel de conductor: tus trabajos asignados, la entrega y el botón de <b>entregado</b>.'
+      : '<br>Tu panel de pedidos: pedir un servicio, seguirlo y ver tus cotizaciones.') + '</div>';
+}
+
 function olvide() {
   irA('entrar');
   document.getElementById('resultado-entrar').innerHTML =
@@ -461,6 +531,15 @@ function seguirTrabajo() {
   var codigo = limpio(document.getElementById('codigo-trabajo').value).toUpperCase();
   var salida = document.getElementById('resultado-seguir');
   if (codigo.length < 6) { salida.innerHTML = '<div class="linea-ojo">Escribe el código completo del trabajo.</div>'; return; }
+  if (usarCuaderno()) {
+    llamarCuaderno({accion: 'seguir', codigo: codigo}, function (r) {
+      salida.innerHTML = (r && r.ok)
+        ? '<div class="linea-ok"><b>Trabajo ' + escapar(r.codigo) + '</b><br>Estado: <b>' + escapar(r.estado) +
+          '</b><br>' + escapar(r.detalle || '') + '</div>'
+        : '<div class="linea-ojo">' + escapar((r && r.mensaje) || 'No encuentro ese trabajo.') + '</div>';
+    });
+    return;
+  }
   var trabajos = leer('sinclair_trabajos_v1', []);
   var t = trabajos.find(function (x) { return (x.codigo || '').toUpperCase() === codigo; });
   if (!t) {
@@ -487,6 +566,10 @@ function enviarDemo(ev) {
     cuando: ahora()
   });
   guardar('sinclair_demos_v1', demos);
+  llamarCuaderno({accion: 'demo', tipo: demos[demos.length - 1].tipo,
+    correo: demos[demos.length - 1].correo, telefono: demos[demos.length - 1].telefono,
+    empresa: demos[demos.length - 1].empresa, negocio: demos[demos.length - 1].negocio,
+    fecha: demos[demos.length - 1].fecha});
   document.getElementById('resultado-demo').innerHTML =
     '<div class="linea-ok">¡Gracias! Recibimos tu pedido de demo y te escribimos para cuadrar la hora.</div>';
   setTimeout(function () { cerrarDemo(); }, 2500);
