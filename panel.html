@@ -203,9 +203,10 @@ function abrirPanel(datos) {
 }
 
 function actualizar() {
+  avisoDe('Actualizando...');
   if (usarCuaderno()) {
     llamar({accion: 'panel', llave_dueno: leer(LLAVE_LOCAL, '')}, function (r) {
-      if (r && r.ok) { pintar(r); }
+      if (r && r.ok) { pintar(r); avisoDe('Actualizado a las ' + horaAhora() + '.', 'ok'); }
       else { document.getElementById('aviso-modo').innerHTML = '<div class="aviso ojo">' + escapar((r && r.mensaje) || 'No pude leer el cuaderno.') + '</div>'; }
     }, function () {
       document.getElementById('aviso-modo').innerHTML = '<div class="aviso ojo">No pude hablar con el cuaderno.</div>';
@@ -213,6 +214,23 @@ function actualizar() {
     return;
   }
   pintar(panelLocal());
+}
+
+function horaAhora() {
+  try { return new Date().toLocaleTimeString('es-US', {hour: '2-digit', minute: '2-digit'}); }
+  catch (e) { return ''; }
+}
+
+function avisoDe(txt, tipo) {
+  var a = document.getElementById('aviso-modo');
+  if (!a) { return; }
+  var previo = a.getAttribute('data-fondo') || a.innerHTML;
+  if (!a.getAttribute('data-fondo')) { a.setAttribute('data-fondo', previo); }
+  var estilo = (tipo === 'ok') ? 'ok' : 'info';
+  a.innerHTML = '<div class="aviso ' + estilo + '">' + escapar(txt) + '</div>';
+  if (tipo === 'ok') {
+    setTimeout(function () { a.innerHTML = a.getAttribute('data-fondo'); }, 4000);
+  }
 }
 
 function panelLocal() {
@@ -295,6 +313,13 @@ function ficha(c, conAcciones) {
       '<button class="mini si" onclick="aprobar(\'' + escapar(c.telefono) + '\')">Aprobar</button>' +
       '<button class="mini no" onclick="rechazar(\'' + escapar(c.telefono) + '\')">Rechazar</button>' +
       '</div>';
+  } else if (c.estado !== 'eliminado') {
+    h += '<div class="acciones">' +
+      (String(c.estado) === 'desactivado'
+        ? '<button class="mini si" onclick="cambiar(\'' + escapar(c.telefono) + '\', \'reactivar\')">Reactivar</button>'
+        : '<button class="mini no" onclick="cambiar(\'' + escapar(c.telefono) + '\', \'desactivar\')">Desactivar</button>') +
+      '<button class="mini gris" onclick="cambiar(\'' + escapar(c.telefono) + '\', \'eliminar\')">Eliminar</button>' +
+      '</div>';
   }
   return h + '</div>';
 }
@@ -318,6 +343,23 @@ function rechazar(telefono) {
     cambiarEstadoLocal(telefono, 'rechazado');
   }
 }
+function cambiar(telefono, accion) {
+  var motivo = '';
+  if (accion === 'desactivar' || accion === 'eliminar') {
+    motivo = prompt(accion === 'eliminar'
+      ? 'Motivo para ELIMINAR a este conductor (queda guardado en el archivo):'
+      : 'Motivo para DESACTIVAR a este conductor (se le avisa por correo):',
+      'incumplimiento de las reglas');
+    if (motivo === null) { return; }
+  }
+  if (usarCuaderno()) {
+    llamar({accion: accion, llave_dueno: leer(LLAVE_LOCAL, ''), telefono: telefono, motivo: motivo},
+      function (r) { alert((r && r.mensaje) || 'Hecho.'); actualizar(); });
+    return;
+  }
+  cambiarEstadoLocal(telefono, accion === 'reactivar' ? 'activo' : accion);
+}
+
 function cambiarEstadoLocal(telefono, estado) {
   var cuentas = leer(LLAVE_CUENTAS, []);
   cuentas.forEach(function (c) {
