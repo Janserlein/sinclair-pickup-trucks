@@ -435,6 +435,29 @@ function pedirCodigo(esReenvio) {
   var caja = document.getElementById('paso-codigo');
   salida.innerHTML = '';
   if (!dato) { salida.innerHTML = '<div class="linea-ojo">Escribe tu nombre, teléfono o correo.</div>'; return; }
+  if (usarCuaderno()) {
+    codigoPendiente = {codigo: null, quien: dato, cuenta: {telefono: ''},
+                       vence: Date.now() + 10 * 60 * 1000, cuaderno: true};
+    caja.classList.remove('oculto');
+    document.getElementById('aviso-codigo').innerHTML =
+      '<div class="aviso info">Buscando tu cuenta en el cuaderno de la empresa...</div>';
+    llamarCuaderno({accion: 'reconocer', quien: dato}, function (r) {
+      if (r && r.ok) {
+        document.getElementById('aviso-codigo').innerHTML =
+          'Te reconozco: <b>' + escapar(r.nombre + ' ' + r.apellido) + '</b> (' + nombrePapel(r.papel) + ').' +
+          '<br>Te mandamos un <b>código de 6 dígitos</b> a <b>' + escapar(r.correo || r.telefono || 'tu correo') + '</b>.' +
+          '<br><small>Vale 10 minutos y solo sirve una vez. Lo manda el cuaderno de la empresa.</small>';
+      } else {
+        document.getElementById('aviso-codigo').innerHTML =
+          '<div class="linea-ojo">' + escapar((r && r.mensaje) || 'No pude mandar el código.') +
+          ' <a href="javascript:void(0)" onclick="irA(\'crear\')">Crear mi cuenta</a></div>';
+      }
+    }, function () {
+      document.getElementById('aviso-codigo').innerHTML =
+        '<div class="linea-ojo">No pude hablar con el cuaderno de la empresa. Intenta otra vez.</div>';
+    });
+    return;
+  }
 
   var cuenta = buscarCuenta(dato);
   if (!cuenta) {
@@ -476,8 +499,8 @@ function confirmarCodigo() {
   if (!codigoPendiente) { salida.innerHTML = '<div class="linea-ojo">Primero pide tu código.</div>'; return; }
   if (Date.now() > codigoPendiente.vence) { salida.innerHTML = '<div class="linea-ojo">El código caducó. Pide otro.</div>'; return; }
   if (usarCuaderno()) {
-    var cTel = codigoPendiente.cuenta.telefono;
-    llamarCuaderno({accion: 'verificar', telefono: cTel, codigo: escrito}, function (r) {
+    var cTel = (codigoPendiente.cuenta && codigoPendiente.cuenta.telefono) || '';
+    llamarCuaderno({accion: 'verificar', telefono: cTel, quien: (codigoPendiente.quien || ''), codigo: escrito}, function (r) {
       if (r && r.ok) {
         guardarSesion({nombre: r.nombre, apellido: r.apellido, telefono: cTel,
                        papel: r.papel, tipo: r.tipo, estado: r.estado});
