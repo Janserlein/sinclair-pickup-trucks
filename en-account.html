@@ -178,7 +178,7 @@
                 </div>
                 <button class="btn-main btn-form" onclick="confirmarCodigo()">Log in</button>
                 <p class="form-aviso">
-                    <a href="javascript:void(0)" onclick="pedirCodigo(true)">I didn't get the code</a> ·
+                    <a href="javascript:void(0)" onclick="pedirCodigo(true)">I did not get the code</a> ·
                     <a href="javascript:void(0)" onclick="cambiarDatos()">Change my phone or email</a>
                 </p>
             </div>
@@ -380,7 +380,7 @@ function crearCuenta(ev) {
     alta: ahora(),
     ultimo_ingreso: null,
     ingresos: 0,
-    estado: (papelElegido === 'piloto') ? 'pendiente de aprobación' : 'activo'
+    estado: (papelElegido === 'piloto') ? 'pending approval' : 'activo'
   };
   cuentas.push(nueva);
   guardar(LLAVE, cuentas);
@@ -398,9 +398,9 @@ function crearCuenta(ev) {
   }
 
   salida.innerHTML = '<div class="linea-ok"><b>Account created, ' + escapar(nueva.nombre) + '!</b><br>' +
-    'Te registramos como <b>' + nombrePapel(nueva.papel) + '</b>' +
-    (nueva.estado === 'pendiente de aprobación'
-      ? '. Un conductor nuevo queda <b>pendiente de aprobación</b>: la empresa revisa tus datos y te avisa.'
+    'You are registered as <b>' + nombrePapel(nueva.papel) + '</b>' +
+    (nueva.estado === 'pending approval'
+      ? '. Un conductor nuevo queda <b>pending approval</b>: la empresa revisa tus datos y te avisa.'
       : '.') +
     '<br><small>You signed the location tracking policy acknowledgment on ' + fechaBonita(nueva.acuse_ubicacion) + '.</small></div>' +
     '<button class="btn-main btn-form" onclick="irA(\'entrar\')">Log in ahora</button>';
@@ -438,7 +438,7 @@ function pedirCodigo(esReenvio) {
 
   var cuenta = buscarCuenta(dato);
   if (!cuenta) {
-    salida.innerHTML = '<div class="linea-ojo">I can't find you with that. ' +
+    salida.innerHTML = '<div class="linea-ojo">I cannot find you with that. ' +
       'If you are new, <a href="javascript:void(0)" onclick="irA(\'crear\')">create your account here</a>.</div>';
     return;
   }
@@ -537,9 +537,9 @@ function pasarAdentro(nombre, papel, tipo, estado, entradas, ultima, vuelveOblig
   }
   document.getElementById('resultado-entrar').innerHTML =
     '<div class="linea-ok"><b>Welcome, ' + escapar(nombre) + '!</b><br>' +
-    'Eres ' + quien + '.<br>Tu cuenta es de <b>' + nombrePapel(papel) + '</b>' +
+    'You are ' + quien + '.<br>Your account is: <b>' + nombrePapel(papel) + '</b>' +
     (pendiente && esConductor
-      ? ' y está <b>pendiente de aprobación</b>: la empresa revisa tus datos y te avisa.'
+      ? ' y está <b>pending approval</b>: la empresa revisa tus datos y te avisa.'
       : ' · Estado: <b>' + escapar(estado || 'activo') + '</b>.') +
     (esConductor
       ? '<br>Your driver panel: assigned jobs, delivery and the <b>delivered</b> button.'
@@ -577,7 +577,7 @@ function seguirTrabajo() {
   var trabajos = leer('sinclair_trabajos_v1', []);
   var t = trabajos.find(function (x) { return (x.codigo || '').toUpperCase() === codigo; });
   if (!t) {
-    salida.innerHTML = '<div class="linea-ojo">I can't find that job. Check the code or ask us on WhatsApp at 904-667-2123.</div>';
+    salida.innerHTML = '<div class="linea-ojo">I cannot find that job. Check the code or ask us on WhatsApp at 904-667-2123.</div>';
     return;
   }
   salida.innerHTML = '<div class="linea-ok"><b>Trabajo ' + escapar(t.codigo) + '</b><br>' +
