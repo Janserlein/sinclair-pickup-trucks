@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <title>Mi panel | Sinclair Pickup Trucks</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        body{background:#f1f5f9;}
+        .caja{max-width:860px;margin:0 auto;background:#fff;border:1px solid #e2e8f0;border-radius:14px;padding:22px;}
+        .quien{display:flex;gap:12px;flex-wrap:wrap;justify-content:space-between;align-items:center;margin-bottom:14px;}
+        .etiqueta{display:inline-block;padding:3px 10px;border-radius:999px;font-size:.8rem;font-weight:700;}
+        .e-ok{background:#dcfce7;color:#166534;}
+        .e-pend{background:#fef3c7;color:#92400e;}
+        .e-no{background:#e2e8f0;color:#334155;}
+        .aviso{border-radius:10px;padding:12px;margin:10px 0;font-size:.93rem;}
+        .aviso.ok{background:#ecfdf5;border:1px solid #34d399;color:#065f46;}
+        .aviso.ojo{background:#fff7ed;border:1px solid #fdba74;color:#9a3412;}
+        .aviso.info{background:#eff6ff;border:1px solid #93c5fd;color:#1e3a8a;}
+        .fila{border:1px solid #e2e8f0;border-radius:12px;padding:14px;margin-bottom:10px;}
+        .fila h4{margin:0 0 6px;font-size:1.02rem;}
+        .fila .datos{color:#475569;font-size:.92rem;line-height:1.55;}
+        .fila .acciones{margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;}
+        .mini{padding:8px 14px;border-radius:8px;border:none;cursor:pointer;font-weight:700;}
+        .si{background:#16a34a;color:#fff;}
+        .gris{background:#e2e8f0;color:#0f172a;}
+        .oculto{display:none;}
+        .codigo{font-weight:800;color:#ff6b00;letter-spacing:.06em;}
+    </style>
+</head>
+<body>
+
+<header class="navbar">
+    <div class="logo">SINCLAIR<span> PICKUP TRUCKS</span></div>
+    <nav class="nav-links">
+        <a href="index.html">Inicio</a>
+        <a href="cuenta.html">Mi cuenta</a>
+        <a href="https://wa.me/19046672123" class="btn-nav" target="_blank" rel="noopener">Cotizar Ahora</a>
+    </nav>
+</header>
+
+<section class="cotizar-section" style="padding-top:34px;">
+    <div class="section-title">
+        <h2 id="titulo">Mi panel</h2>
+        <div class="line"></div>
+        <p class="subtitle" id="saludo">Cargando...</p>
+    </div>
+
+    <div class="caja" id="caja-sin-sesion">
+        <h3>Primero hay que entrar</h3>
+        <p class="subtitle" style="text-align:left;">No veo ninguna sesión abierta en este teléfono.</p>
+        <a class="btn-main btn-form" href="cuenta.html" style="display:inline-block;text-decoration:none;text-align:center;">Entrar o crear mi cuenta</a>
+    </div>
+
+    <div class="caja oculto" id="caja-cliente">
+        <div class="quien">
+            <div><b id="cli-nombre"></b> <span id="cli-estado"></span></div>
+            <button class="mini gris" onclick="salir()">Cerrar sesión</button>
+        </div>
+        <h3>Pedir un servicio</h3>
+        <p class="subtitle" style="text-align:left;">Díganos qué necesita y le damos un código para seguir su pedido.</p>
+        <form onsubmit="return pedirServicio(event)">
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="p-que">¿Qué necesita mover? *</label>
+                    <input id="p-que" type="text" placeholder="Sofá, colchón, materiales, mudanza..." required>
+                </div>
+                <div class="form-group">
+                    <label for="p-cuando">¿Para cuándo?</label>
+                    <input id="p-cuando" type="text" placeholder="Hoy, mañana, el viernes...">
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="p-desde">Desde dónde *</label>
+                    <input id="p-desde" type="text" placeholder="Dirección de recogida" required>
+                </div>
+                <div class="form-group">
+                    <label for="p-hasta">Hacia dónde *</label>
+                    <input id="p-hasta" type="text" placeholder="Dirección de entrega" required>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="p-nota">Detalles (piso, escaleras, elevador, notas)</label>
+                <input id="p-nota" type="text" placeholder="Ej: 2do piso, sin elevador">
+            </div>
+            <button type="submit" class="btn-main btn-form">Pedir servicio</button>
+        </form>
+        <div id="resultado-pedido"></div>
+        <h3 style="margin-top:22px;">Mis pedidos</h3>
+        <div id="mis-pedidos"></div>
+    </div>
+
+    <div class="caja oculto" id="caja-conductor">
+        <div class="quien">
+            <div><b id="con-nombre"></b> <span id="con-estado"></span></div>
+            <button class="mini gris" onclick="salir()">Cerrar sesión</button>
+        </div>
+        <div id="aviso-conductor"></div>
+        <h3>Mis trabajos</h3>
+        <div id="mis-trabajos"></div>
+        <h3 style="margin-top:22px;">Mis datos</h3>
+        <div id="mis-datos" class="datos"></div>
+    </div>
+</section>
+
+<footer>
+    <div class="footer-content">
+        <div class="footer-line"></div>
+        <p class="copyright">&copy; 2026 SINCLAIR PICKUP TRUCKS · 2719 Leon Rd, Jacksonville, FL 32246 · WhatsApp 904-667-2123</p>
+    </div>
+</footer>
+
+<script>
+/* =====================================================================
+   MI PANEL (cliente y conductor) - 16-oct-2026
+   Lee la sesión que dejó la página de cuentas. Con el cuaderno puesto,
+   los pedidos y los trabajos viven en la hoja de Google; sin cuaderno,
+   en este navegador (modo de prueba).
+   ===================================================================== */
+var CUADERNO = '';                 /* <-- la dirección /exec cuando monte el cuaderno */
+var LLAVE_SESION = 'sinclair_sesion';
+var LLAVE_PEDIDOS = 'sinclair_pedidos_v1';
+var CUENTAS = 'sinclair_cuentas_v1';
+var sesion = null;
+
+function usarCuaderno() { return CUADERNO && CUADERNO.indexOf('http') === 0; }
+
+function leer(k, d) { try { var t = localStorage.getItem(k); return t ? JSON.parse(t) : d; } catch (e) { return d; } }
+function guardar(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
+function escapar(t) {
+  return (t === null || t === undefined ? '' : String(t))
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+function fecha(iso) {
+  if (!iso) return '';
+  try { return new Date(iso).toLocaleString('es-US', {dateStyle: 'short', timeStyle: 'short'}); } catch (e) { return iso; }
+}
+function nuevoCodigo() {
+  var a = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789', s = '';
+  for (var i = 0; i < 6; i++) s += a[Math.floor(Math.random() * a.length)];
+  return 'SP-' + s;
+}
+function llamar(datos, alRecibir) {
+  if (!usarCuaderno()) { if (alRecibir) alRecibir(null); return; }
+  fetch(CUADERNO, {method: 'POST', body: JSON.stringify(datos)})
+    .then(function (r) { return r.json(); })
+    .then(function (r) { if (alRecibir) alRecibir(r); })
+    .catch(function () { if (alRecibir) alRecibir(null); });
+}
+
+/* ---------- arranque ---------- */
+window.addEventListener('load', function () {
+  sesion = leer(LLAVE_SESION, null);
+  if (!sesion) {
+    document.getElementById('caja-sin-sesion').classList.remove('oculto');
+    document.getElementById('saludo').innerText = 'Entra con tu nombre, teléfono o correo.';
+    return;
+  }
+  document.getElementById('caja-sin-sesion').classList.add('oculto');
+  var esConductor = (sesion.tipo === 'conductor') || (sesion.papel === 'piloto');
+  document.getElementById('titulo').innerText = esConductor ? 'Mi panel de conductor' : 'Mi panel de pedidos';
+  document.getElementById('saludo').innerText = 'Hola, ' + sesion.nombre + '. Este es tu espacio.';
+  if (esConductor) {
+    document.getElementById('caja-conductor').classList.remove('oculto');
+    document.getElementById('con-nombre').innerText = sesion.nombre + ' ' + (sesion.apellido || '');
+    document.getElementById('con-estado').innerHTML = estadoEtiqueta(sesion.estado);
+    var pendiente = String(sesion.estado || '').indexOf('pendiente') === 0;
+    document.getElementById('aviso-conductor').innerHTML = pendiente
+      ? '<div class="aviso ojo"><b>Tu cuenta está pendiente de aprobación.</b> La empresa está revisando tus datos (licencia, récord y seguro). En cuanto te aprueben, aquí te aparecerán tus trabajos.</div>'
+      : '<div class="aviso ok"><b>Estás aprobado.</b> Cuando te asignen un trabajo lo verás aquí con el botón <b>Entregado</b>.</div>';
+    cargarTrabajos();
+    cargarDatos();
+  } else {
+    document.getElementById('caja-cliente').classList.remove('oculto');
+    document.getElementById('cli-nombre').innerText = sesion.nombre + ' ' + (sesion.apellido || '');
+    document.getElementById('cli-estado').innerHTML = estadoEtiqueta(sesion.estado || 'activo');
+    cargarPedidos();
+  }
+});
+
+function estadoEtiqueta(e) {
+  e = String(e || '');
+  if (e.indexOf('pendiente') === 0) return '<span class="etiqueta e-pend">pendiente de aprobación</span>';
+  if (e === 'activo') return '<span class="etiqueta e-ok">activo</span>';
+  if (e === 'rechazado') return '<span class="etiqueta e-no">rechazado</span>';
+  return '<span class="etiqueta e-no">' + escapar(e) + '</span>';
+}
+
+/* ---------- CLIENTE: pedir y ver sus pedidos ---------- */
+function pedirServicio(ev) {
+  ev.preventDefault();
+  var que = document.getElementById('p-que').value.trim();
+  var desde = document.getElementById('p-desde').value.trim();
+  var hasta = document.getElementById('p-hasta').value.trim();
+  var cuando = document.getElementById('p-cuando').value.trim();
+  var nota = document.getElementById('p-nota').value.trim();
+  var salida = document.getElementById('resultado-pedido');
+  if (!que || !desde || !hasta) {
+    salida.innerHTML = '<div class="aviso ojo">Faltan datos: qué mover, desde dónde y hacia dónde.</div>';
+    return false;
+  }
+  var pedido = {codigo: nuevoCodigo(), que: que, desde: desde, hasta: hasta, cuando: cuando, nota: nota,
+                telefono: sesion.telefono || '', nombre: sesion.nombre, estado: 'solicitado',
+                creado: new Date().toISOString()};
+  var todos = leer(LLAVE_PEDIDOS, []);
+  todos.push(pedido);
+  guardar(LLAVE_PEDIDOS, todos);
+  llamar({accion: 'pedido', telefono: pedido.telefono, nombre: pedido.nombre, que: que, desde: desde,
+          hasta: hasta, cuando: cuando, nota: nota, codigo: pedido.codigo});
+  salida.innerHTML = '<div class="aviso ok"><b>Pedido recibido.</b> Tu código es ' +
+    '<span class="codigo">' + pedido.codigo + '</span><br>' +
+    'Guárdalo: con él puedes mirar cómo va en <a href="cuenta.html">Seguir mi trabajo</a>. ' +
+    'También te escribimos por WhatsApp para confirmar la hora y el precio.</div>';
+  document.getElementById('p-que').value = '';
+  document.getElementById('p-desde').value = '';
+  document.getElementById('p-hasta').value = '';
+  document.getElementById('p-nota').value = '';
+  cargarPedidos();
+  return false;
+}
+
+function cargarPedidos() {
+  var caja = document.getElementById('mis-pedidos');
+  var todos = leer(LLAVE_PEDIDOS, []).filter(function (p) {
+    return !sesion.telefono || String(p.telefono).replace(/\D/g, '') === String(sesion.telefono).replace(/\D/g, '');
+  });
+  if (usarCuaderno()) {
+    llamar({accion: 'mio', telefono: sesion.telefono, nombre: sesion.nombre}, function (r) {
+      if (r && r.ok && r.pedidos) { pintarPedidos(r.pedidos); } else { pintarPedidos(todos); }
+    });
+    return;
+  }
+  pintarPedidos(todos);
+}
+
+function pintarPedidos(lista) {
+  var caja = document.getElementById('mis-pedidos');
+  if (!lista || !lista.length) {
+    caja.innerHTML = '<div class="aviso info">Todavía no has pedido nada. Usa el formulario de arriba.</div>';
+    return;
+  }
+  var h = '';
+  lista.slice().reverse().forEach(function (p) {
+    h += '<div class="fila"><h4>' + escapar(p.que) + ' · <span class="codigo">' + escapar(p.codigo) + '</span></h4>' +
+      '<div class="datos">Desde: ' + escapar(p.desde) + '<br>Hacia: ' + escapar(p.hasta) +
+      (p.cuando ? '<br>Para: ' + escapar(p.cuando) : '') +
+      (p.nota ? '<br>Nota: ' + escapar(p.nota) : '') +
+      '<br>Estado: <b>' + escapar(p.estado || 'solicitado') + '</b> · Pedido el ' + escapar(fecha(p.creado)) +
+      '</div></div>';
+  });
+  caja.innerHTML = h;
+}
+
+/* ---------- CONDUCTOR: sus trabajos y el botón Entregado ---------- */
+function cargarTrabajos() {
+  var caja = document.getElementById('mis-trabajos');
+  if (!usarCuaderno()) {
+    caja.innerHTML = '<div class="aviso info">Modo de prueba: aquí verás los trabajos que te asigne la empresa ' +
+      'cuando el cuaderno esté conectado. Mientras tanto, puedes avisarnos por WhatsApp al 904-667-2123.</div>';
+    return;
+  }
+  llamar({accion: 'mio', telefono: sesion.telefono, nombre: sesion.nombre}, function (r) {
+    var lista = (r && r.ok && r.trabajos) ? r.trabajos : [];
+    if (!lista.length) {
+      caja.innerHTML = '<div class="aviso ok">No tienes trabajos asignados ahora mismo. Te avisamos.</div>';
+      return;
+    }
+    var h = '';
+    lista.forEach(function (t) {
+      var hecho = String(t.estado) === 'entregado';
+      h += '<div class="fila"><h4>' + escapar(t.codigo) + ' ' + (hecho ? '<span class="etiqueta e-ok">entregado</span>' : '<span class="etiqueta e-pend">' + escapar(t.estado) + '</span>') + '</h4>' +
+        '<div class="datos">' + escapar(t.detalle || '') + '</div>' +
+        (hecho ? '' : '<div class="acciones"><button class="mini si" onclick="entregar(\'' + escapar(t.codigo) + '\')">Marcar ENTREGADO</button></div>') +
+        '</div>';
+    });
+    caja.innerHTML = h;
+  });
+}
+
+function entregar(codigo) {
+  if (!usarCuaderno()) { return; }
+  if (!confirm('¿Seguro que ya entregaste el trabajo ' + codigo + '?')) { return; }
+  llamar({accion: 'entregar', telefono: sesion.telefono, codigo: codigo}, function (r) {
+    alert((r && r.mensaje) || 'Hecho.');
+    cargarTrabajos();
+  });
+}
+
+function cargarDatos() {
+  var c = null;
+  var lista = leer(CUENTAS, []);
+  lista.forEach(function (x) {
+    if (String(x.telefono).replace(/\D/g, '') === String(sesion.telefono).replace(/\D/g, '')) c = x;
+  });
+  var h = 'Nombre: <b>' + escapar(sesion.nombre + ' ' + (sesion.apellido || '')) + '</b><br>' +
+          'Teléfono: <b>' + escapar(sesion.telefono || '') + '</b><br>' +
+          'Correo: ' + escapar(sesion.correo || '') + '<br>';
+  if (c) {
+    h += (c.vehiculo ? 'Vehículo: ' + escapar(c.vehiculo) + ' · Licencia: ' + escapar(c.licencia) + '<br>' : '') +
+         (c.zona ? 'Zona: ' + escapar(c.zona) + ' · Seguro: ' + escapar(c.seguro) + '<br>' : '') +
+         (c.acuse_ubicacion ? 'Acuse de seguimiento de ubicación: firmado el ' + escapar(fecha(c.acuse_ubicacion)) : '');
+  }
+  document.getElementById('mis-datos').innerHTML = h;
+}
+
+function salir() {
+  localStorage.removeItem(LLAVE_SESION);
+  location.href = 'cuenta.html';
+}
+</script>
+</body>
+</html>

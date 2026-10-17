@@ -479,6 +479,8 @@ function confirmarCodigo() {
     var cTel = codigoPendiente.cuenta.telefono;
     llamarCuaderno({accion: 'verificar', telefono: cTel, codigo: escrito}, function (r) {
       if (r && r.ok) {
+        guardarSesion({nombre: r.nombre, apellido: r.apellido, telefono: cTel,
+                       papel: r.papel, tipo: r.tipo, estado: r.estado});
         pasarAdentro(r.nombre, r.papel, r.tipo, r.estado, r.entradas || (r.vuelve ? 2 : 1),
                       r.ultimo || ahora(), !!r.vuelve);
       } else {
@@ -500,8 +502,22 @@ function confirmarCodigo() {
     c.ultimo_ingreso = ahora();
     guardar(LLAVE, cuentas);
   }
+  if (c) {
+    guardarSesion({nombre: c.nombre, apellido: c.apellido, telefono: c.telefono, correo: c.correo,
+                   papel: c.papel, tipo: c.tipo, estado: c.estado});
+  }
   pasarAdentro(c ? c.nombre : '', c ? c.papel : '', c ? c.tipo : '', c ? c.estado : '',
                 c ? c.ingresos : 1, c ? c.ultimo_ingreso : ahora(), !!esVuelta);
+}
+
+function guardarSesion(d) {
+  try {
+    localStorage.setItem('sinclair_sesion', JSON.stringify({
+      nombre: d.nombre || '', apellido: d.apellido || '', telefono: d.telefono || '',
+      correo: d.correo || '', papel: d.papel || '', tipo: d.tipo || '', estado: d.estado || '',
+      cuando: new Date().toISOString()
+    }));
+  } catch (e) {}
 }
 
 function pasarAdentro(nombre, papel, tipo, estado, entradas, ultima, vuelveObligado) {
@@ -528,7 +544,8 @@ function pasarAdentro(nombre, papel, tipo, estado, entradas, ultima, vuelveOblig
     (esConductor
       ? '<br>Tu panel de conductor: tus trabajos asignados, la entrega y el botón de <b>entregado</b>.'
       : '<br>Tu panel de pedidos: pedir un servicio, seguirlo y ver tus cotizaciones.') +
-    '<br><small>Entradas a tu cuenta: ' + n + ' · Última: ' + fechaBonita(ultima || ahora()) + '</small></div>';
+    '<br><small>Entradas a tu cuenta: ' + n + ' · Última: ' + fechaBonita(ultima || ahora()) + '</small>' +
+    '<br><br><button class=\"btn-main btn-form\" onclick=\"location.href=\'app.html\'\">Ir a mi panel</button></div>';
 }
 
 function olvide() {
