@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <title>My panel | Sinclair Pickup Trucks</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        body{background:#f1f5f9;}
+        .caja{max-width:860px;margin:0 auto;background:#fff;border:1px solid #e2e8f0;border-radius:14px;padding:22px;}
+        .quien{display:flex;gap:12px;flex-wrap:wrap;justify-content:space-between;align-items:center;margin-bottom:14px;}
+        .etiqueta{display:inline-block;padding:3px 10px;border-radius:999px;font-size:.8rem;font-weight:700;}
+        .e-ok{background:#dcfce7;color:#166534;}
+        .e-pend{background:#fef3c7;color:#92400e;}
+        .e-no{background:#e2e8f0;color:#334155;}
+        .aviso{border-radius:10px;padding:12px;margin:10px 0;font-size:.93rem;}
+        .aviso.ok{background:#ecfdf5;border:1px solid #34d399;color:#065f46;}
+        .aviso.ojo{background:#fff7ed;border:1px solid #fdba74;color:#9a3412;}
+        .aviso.info{background:#eff6ff;border:1px solid #93c5fd;color:#1e3a8a;}
+        .fila{border:1px solid #e2e8f0;border-radius:12px;padding:14px;margin-bottom:10px;}
+        .fila h4{margin:0 0 6px;font-size:1.02rem;}
+        .fila .datos{color:#475569;font-size:.92rem;line-height:1.55;}
+        .fila .acciones{margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;}
+        .mini{padding:8px 14px;border-radius:8px;border:none;cursor:pointer;font-weight:700;}
+        .si{background:#16a34a;color:#fff;}
+        .gris{background:#e2e8f0;color:#0f172a;}
+        .oculto{display:none;}
+        .codigo{font-weight:800;color:#ff6b00;letter-spacing:.06em;}
+    </style>
+</head>
+<body>
+
+<header class="navbar">
+    <div class="logo">SINCLAIR<span> PICKUP TRUCKS</span></div>
+    <nav class="nav-links">
+        <a href="en.html">Home</a>
+        <a href="en-account.html">My account</a>
+        <a href="https://wa.me/19046672123" class="btn-nav" target="_blank" rel="noopener">Get a Quote</a>
+    </nav>
+</header>
+
+<section class="cotizar-section" style="padding-top:34px;">
+    <div class="section-title">
+        <h2 id="titulo">My panel</h2>
+        <div class="line"></div>
+        <p class="subtitle" id="saludo">Loading...</p>
+    </div>
+
+    <div class="caja" id="caja-sin-sesion">
+        <h3>Please log in first</h3>
+        <p class="subtitle" style="text-align:left;">I cannot see any open session on this phone.</p>
+        <a class="btn-main btn-form" href="en-account.html" style="display:inline-block;text-decoration:none;text-align:center;">Log in or create my account</a>
+    </div>
+
+    <div class="caja oculto" id="caja-cliente">
+        <div class="quien">
+            <div><b id="cli-nombre"></b> <span id="cli-estado"></span></div>
+            <button class="mini gris" onclick="salir()">Log out</button>
+        </div>
+        <h3>Request a service</h3>
+        <p class="subtitle" style="text-align:left;">Tell us what you need and we give you a code to track your order.</p>
+        <form onsubmit="return pedirServicio(event)">
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="p-que">What do you need moved? *</label>
+                    <input id="p-que" type="text" placeholder="Sofa, mattress, materials, moving..." required>
+                </div>
+                <div class="form-group">
+                    <label for="p-cuando">For when?</label>
+                    <input id="p-cuando" type="text" placeholder="Today, tomorrow, Friday...">
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="p-desde">From where *</label>
+                    <input id="p-desde" type="text" placeholder="Pickup address" required>
+                </div>
+                <div class="form-group">
+                    <label for="p-hasta">To where *</label>
+                    <input id="p-hasta" type="text" placeholder="Delivery address" required>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="p-nota">Details (floor, stairs, elevator, notes)</label>
+                <input id="p-nota" type="text" placeholder="Example: 2nd floor, no elevator">
+            </div>
+            <button type="submit" class="btn-main btn-form">Request service</button>
+        </form>
+        <div id="resultado-pedido"></div>
+        <h3 style="margin-top:22px;">My orders</h3>
+        <div id="mis-pedidos"></div>
+    </div>
+
+    <div class="caja oculto" id="caja-conductor">
+        <div class="quien">
+            <div><b id="con-nombre"></b> <span id="con-estado"></span></div>
+            <button class="mini gris" onclick="salir()">Log out</button>
+        </div>
+        <div id="aviso-conductor"></div>
+        <h3>My jobs</h3>
+        <div id="mis-trabajos"></div>
+        <h3 style="margin-top:22px;">My data</h3>
+        <div id="mis-datos" class="datos"></div>
+    </div>
+</section>
+
+<footer>
+    <div class="footer-content">
+        <div class="footer-line"></div>
+        <p class="copyright">&copy; 2026 SINCLAIR PICKUP TRUCKS · 2719 Leon Rd, Jacksonville, FL 32246 · WhatsApp 904-667-2123</p>
+    </div>
+</footer>
+
+<script>
+/* =====================================================================
+   MI PANEL (cliente y conductor) - 16-oct-2026
+   Lee la sesión que dejó la página de cuentas. Con el cuaderno puesto,
+   los pedidos y los trabajos viven en la hoja de Google; sin cuaderno,
+   en este navegador (modo de prueba).
+   ===================================================================== */
+var CUADERNO = '';                 /* <-- la dirección /exec cuando monte el cuaderno */
+var LLAVE_SESION = 'sinclair_sesion';
+var LLAVE_PEDIDOS = 'sinclair_pedidos_v1';
+var CUENTAS = 'sinclair_cuentas_v1';
+var sesion = null;
+
+function usarCuaderno() { return CUADERNO && CUADERNO.indexOf('http') === 0; }
+
+function leer(k, d) { try { var t = localStorage.getItem(k); return t ? JSON.parse(t) : d; } catch (e) { return d; } }
+function guardar(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
+function escapar(t) {
+  return (t === null || t === undefined ? '' : String(t))
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+function fecha(iso) {
+  if (!iso) return '';
+  try { return new Date(iso).toLocaleString('es-US', {dateStyle: 'short', timeStyle: 'short'}); } catch (e) { return iso; }
+}
+function nuevoCodigo() {
+  var a = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789', s = '';
+  for (var i = 0; i < 6; i++) s += a[Math.floor(Math.random() * a.length)];
+  return 'SP-' + s;
+}
+function llamar(datos, alRecibir) {
+  if (!usarCuaderno()) { if (alRecibir) alRecibir(null); return; }
+  fetch(CUADERNO, {method: 'POST', body: JSON.stringify(datos)})
+    .then(function (r) { return r.json(); })
+    .then(function (r) { if (alRecibir) alRecibir(r); })
+    .catch(function () { if (alRecibir) alRecibir(null); });
+}
+
+/* ---------- arranque ---------- */
+window.addEventListener('load', function () {
+  sesion = leer(LLAVE_SESION, null);
+  if (!sesion) {
+    document.getElementById('caja-sin-sesion').classList.remove('oculto');
+    document.getElementById('saludo').innerText = 'Entra con tu nombre, teléfono o correo.';
+    return;
+  }
+  document.getElementById('caja-sin-sesion').classList.add('oculto');
+  var esConductor = (sesion.tipo === 'conductor') || (sesion.papel === 'piloto');
+  document.getElementById('titulo').innerText = esConductor ? 'My driver panel' : 'My orders panel';
+  document.getElementById('saludo').innerText = 'Hello, ' + sesion.nombre + '. This is your space.';
+  if (esConductor) {
+    document.getElementById('caja-conductor').classList.remove('oculto');
+    document.getElementById('con-nombre').innerText = sesion.nombre + ' ' + (sesion.apellido || '');
+    document.getElementById('con-estado').innerHTML = estadoEtiqueta(sesion.estado);
+    var pendiente = (String(sesion.estado || '').indexOf('pending') === 0 || String(sesion.estado || '').indexOf('pendiente') === 0);
+    document.getElementById('aviso-conductor').innerHTML = pendiente
+      ? '<div class="aviso ojo"><b>Your account is pending approval.</b> The company is reviewing your data (license, record and insurance). Once you are approved, your jobs will show up here.</div>'
+      : '<div class="aviso ok"><b>You are approved.</b> When a job is assigned to you it will appear here with the <b>Delivered</b> button.</div>';
+    cargarTrabajos();
+    cargarDatos();
+  } else {
+    document.getElementById('caja-cliente').classList.remove('oculto');
+    document.getElementById('cli-nombre').innerText = sesion.nombre + ' ' + (sesion.apellido || '');
+    document.getElementById('cli-estado').innerHTML = estadoEtiqueta(sesion.estado || 'active');
+    cargarPedidos();
+  }
+});
+
+function estadoEtiqueta(e) {
+  e = String(e || '');
+  if (e.indexOf('pending') === 0 || e.indexOf('pendiente') === 0) return '<span class="etiqueta e-pend">pending approval</span>';
+  if (e === 'active') return '<span class="etiqueta e-ok">active</span>';
+  if (e === 'rejected') return '<span class="etiqueta e-no">rejected</span>';
+  return '<span class="etiqueta e-no">' + escapar(e) + '</span>';
+}
+
+/* ---------- CLIENTE: pedir y ver sus pedidos ---------- */
+function pedirServicio(ev) {
+  ev.preventDefault();
+  var que = document.getElementById('p-que').value.trim();
+  var desde = document.getElementById('p-desde').value.trim();
+  var hasta = document.getElementById('p-hasta').value.trim();
+  var cuando = document.getElementById('p-cuando').value.trim();
+  var nota = document.getElementById('p-nota').value.trim();
+  var salida = document.getElementById('resultado-pedido');
+  if (!que || !desde || !hasta) {
+    salida.innerHTML = '<div class="aviso ojo">Missing details: what to move, from where and to where.</div>';
+    return false;
+  }
+  var pedido = {codigo: nuevoCodigo(), que: que, desde: desde, hasta: hasta, cuando: cuando, nota: nota,
+                telefono: sesion.telefono || '', nombre: sesion.nombre, estado: 'solicitado',
+                creado: new Date().toISOString()};
+  var todos = leer(LLAVE_PEDIDOS, []);
+  todos.push(pedido);
+  guardar(LLAVE_PEDIDOS, todos);
+  llamar({accion: 'pedido', telefono: pedido.telefono, nombre: pedido.nombre, que: que, desde: desde,
+          hasta: hasta, cuando: cuando, nota: nota, codigo: pedido.codigo});
+  salida.innerHTML = '<div class="aviso ok"><b>Order received.</b> Your code is ' +
+    '<span class="codigo">' + pedido.codigo + '</span><br>' +
+    'Keep it: with it you can follow the order in <a href="en-account.html">Track my job</a>. ' +
+    'We will also write you on WhatsApp to confirm the time and price.</div>';
+  document.getElementById('p-que').value = '';
+  document.getElementById('p-desde').value = '';
+  document.getElementById('p-hasta').value = '';
+  document.getElementById('p-nota').value = '';
+  cargarPedidos();
+  return false;
+}
+
+function cargarPedidos() {
+  var caja = document.getElementById('mis-pedidos');
+  var todos = leer(LLAVE_PEDIDOS, []).filter(function (p) {
+    return !sesion.telefono || String(p.telefono).replace(/\D/g, '') === String(sesion.telefono).replace(/\D/g, '');
+  });
+  if (usarCuaderno()) {
+    llamar({accion: 'mio', telefono: sesion.telefono, nombre: sesion.nombre}, function (r) {
+      if (r && r.ok && r.pedidos) { pintarPedidos(r.pedidos); } else { pintarPedidos(todos); }
+    });
+    return;
+  }
+  pintarPedidos(todos);
+}
+
+function pintarPedidos(lista) {
+  var caja = document.getElementById('mis-pedidos');
+  if (!lista || !lista.length) {
+    caja.innerHTML = '<div class="aviso info">You have not ordered anything yet. Use the form above.</div>';
+    return;
+  }
+  var h = '';
+  lista.slice().reverse().forEach(function (p) {
+    h += '<div class="fila"><h4>' + escapar(p.que) + ' · <span class="codigo">' + escapar(p.codigo) + '</span></h4>' +
+      '<div class="datos">From: ' + escapar(p.desde) + '<br>To: ' + escapar(p.hasta) +
+      (p.cuando ? '<br>For: ' + escapar(p.cuando) : '') +
+      (p.nota ? '<br>Note: ' + escapar(p.nota) : '') +
+      '<br>Status: <b>' + escapar(p.estado || 'solicitado') + '</b> · Ordered on ' + escapar(fecha(p.creado)) +
+      '</div></div>';
+  });
+  caja.innerHTML = h;
+}
+
+/* ---------- CONDUCTOR: sus trabajos y el botón Entregado ---------- */
+function cargarTrabajos() {
+  var caja = document.getElementById('mis-trabajos');
+  if (!usarCuaderno()) {
+    caja.innerHTML = '<div class="aviso info">Trial mode: here you will see the jobs the company assigns to you ' +
+      'once the cloud notebook is connected. Meanwhile you can reach us on WhatsApp at 904-667-2123.</div>';
+    return;
+  }
+  llamar({accion: 'mio', telefono: sesion.telefono, nombre: sesion.nombre}, function (r) {
+    var lista = (r && r.ok && r.trabajos) ? r.trabajos : [];
+    if (!lista.length) {
+      caja.innerHTML = '<div class="aviso ok">You have no jobs assigned right now. We will let you know.</div>';
+      return;
+    }
+    var h = '';
+    lista.forEach(function (t) {
+      var hecho = String(t.estado) === 'delivered';
+      h += '<div class="fila"><h4>' + escapar(t.codigo) + ' ' + (hecho ? '<span class="etiqueta e-ok">delivered</span>' : '<span class="etiqueta e-pend">' + escapar(t.estado) + '</span>') + '</h4>' +
+        '<div class="datos">' + escapar(t.detalle || '') + '</div>' +
+        (hecho ? '' : '<div class="acciones"><button class="mini si" onclick="entregar(\'' + escapar(t.codigo) + '\')">Mark as DELIVERED</button></div>') +
+        '</div>';
+    });
+    caja.innerHTML = h;
+  });
+}
+
+function entregar(codigo) {
+  if (!usarCuaderno()) { return; }
+  if (!confirm('Did you already deliver job ' + codigo + '?')) { return; }
+  llamar({accion: 'entregar', telefono: sesion.telefono, codigo: codigo}, function (r) {
+    alert((r && r.mensaje) || 'Hecho.');
+    cargarTrabajos();
+  });
+}
+
+function cargarDatos() {
+  var c = null;
+  var lista = leer(CUENTAS, []);
+  lista.forEach(function (x) {
+    if (String(x.telefono).replace(/\D/g, '') === String(sesion.telefono).replace(/\D/g, '')) c = x;
+  });
+  var h = 'Name: <b>' + escapar(sesion.nombre + ' ' + (sesion.apellido || '')) + '</b><br>' +
+          'Phone: <b>' + escapar(sesion.telefono || '') + '</b><br>' +
+          'Email: ' + escapar(sesion.correo || '') + '<br>';
+  if (c) {
+    h += (c.vehiculo ? 'Vehicle: ' + escapar(c.vehiculo) + ' · License: ' + escapar(c.licencia) + '<br>' : '') +
+         (c.zona ? 'Area: ' + escapar(c.zona) + ' · Insurance: ' + escapar(c.seguro) + '<br>' : '') +
+         (c.acuse_ubicacion ? 'Location tracking acknowledgment: signed on ' + escapar(fecha(c.acuse_ubicacion)) : '');
+  }
+  document.getElementById('mis-datos').innerHTML = h;
+}
+
+function salir() {
+  localStorage.removeItem(LLAVE_SESION);
+  location.href = 'en-account.html';
+}
+</script>
+</body>
+</html>

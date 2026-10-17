@@ -166,7 +166,7 @@ window.addEventListener('load', function () {
     document.getElementById('caja-conductor').classList.remove('oculto');
     document.getElementById('con-nombre').innerText = sesion.nombre + ' ' + (sesion.apellido || '');
     document.getElementById('con-estado').innerHTML = estadoEtiqueta(sesion.estado);
-    var pendiente = String(sesion.estado || '').indexOf('pendiente') === 0;
+    var pendiente = (String(sesion.estado || '').indexOf('pendiente') === 0 || (String(sesion.estado || '').indexOf('pending') === 0 || String(sesion.estado || '').indexOf('pendiente') === 0));
     document.getElementById('aviso-conductor').innerHTML = pendiente
       ? '<div class="aviso ojo"><b>Tu cuenta está pendiente de aprobación.</b> La empresa está revisando tus datos (licencia, récord y seguro). En cuanto te aprueben, aquí te aparecerán tus trabajos.</div>'
       : '<div class="aviso ok"><b>Estás aprobado.</b> Cuando te asignen un trabajo lo verás aquí con el botón <b>Entregado</b>.</div>';
@@ -182,7 +182,7 @@ window.addEventListener('load', function () {
 
 function estadoEtiqueta(e) {
   e = String(e || '');
-  if (e.indexOf('pendiente') === 0) return '<span class="etiqueta e-pend">pendiente de aprobación</span>';
+  if (e.indexOf('pendiente') === 0 || e.indexOf('pending') === 0) return '<span class="etiqueta e-pend">pendiente de aprobación</span>';
   if (e === 'activo') return '<span class="etiqueta e-ok">activo</span>';
   if (e === 'rechazado') return '<span class="etiqueta e-no">rechazado</span>';
   return '<span class="etiqueta e-no">' + escapar(e) + '</span>';
