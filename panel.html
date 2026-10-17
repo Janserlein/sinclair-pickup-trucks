@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <title>Panel del dueño | Sinclair Pickup Trucks</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        body{background:#f1f5f9;}
+        .caja{max-width:1000px;margin:0 auto;background:#fff;border:1px solid #e2e8f0;border-radius:14px;padding:22px;}
+        .tarjetas{display:flex;gap:12px;flex-wrap:wrap;margin:16px 0;}
+        .tarjeta{flex:1;min-width:180px;border:1px solid #e2e8f0;border-radius:12px;padding:14px;background:#fff;}
+        .tarjeta b{display:block;font-size:1.9rem;color:#ff6b00;line-height:1.1;}
+        .tarjeta span{color:#475569;font-size:.9rem;}
+        .pestanas{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0 16px;}
+        .pestana{padding:9px 15px;border-radius:10px;border:1px solid #e2e8f0;background:#f8fafc;cursor:pointer;font-weight:600;}
+        .pestana.activa{background:#0f172a;color:#fff;border-color:#0f172a;}
+        .fila{border:1px solid #e2e8f0;border-radius:12px;padding:14px;margin-bottom:10px;}
+        .fila h4{margin:0 0 6px;font-size:1.05rem;}
+        .fila .datos{color:#475569;font-size:.92rem;line-height:1.55;}
+        .fila .acciones{margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;}
+        .mini{padding:8px 14px;border-radius:8px;border:none;cursor:pointer;font-weight:700;}
+        .si{background:#16a34a;color:#fff;}
+        .no{background:#dc2626;color:#fff;}
+        .gris{background:#e2e8f0;color:#0f172a;}
+        .aviso{border-radius:10px;padding:12px;margin:10px 0;font-size:.93rem;}
+        .aviso.ok{background:#ecfdf5;border:1px solid #34d399;color:#065f46;}
+        .aviso.ojo{background:#fff7ed;border:1px solid #fdba74;color:#9a3412;}
+        .aviso.info{background:#eff6ff;border:1px solid #93c5fd;color:#1e3a8a;}
+        table{width:100%;border-collapse:collapse;font-size:.9rem;}
+        th,td{text-align:left;padding:8px 6px;border-bottom:1px solid #e2e8f0;}
+        th{color:#475569;font-size:.82rem;text-transform:uppercase;}
+        .buscador{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;}
+        .buscador input{flex:1;min-width:220px;}
+        .oculto{display:none;}
+        .etiqueta{display:inline-block;padding:3px 9px;border-radius:999px;font-size:.78rem;font-weight:700;}
+        .e-nuevo{background:#fee2e2;color:#991b1b;}
+        .e-pend{background:#fef3c7;color:#92400e;}
+        .e-ok{background:#dcfce7;color:#166534;}
+        .e-no{background:#e2e8f0;color:#334155;}
+    </style>
+</head>
+<body>
+
+<header class="navbar">
+    <div class="logo">SINCLAIR<span> PICKUP TRUCKS</span></div>
+    <nav class="nav-links">
+        <a href="index.html">Inicio</a>
+        <a href="cuenta.html">Página de cuentas</a>
+        <a href="https://wa.me/19046672123" class="btn-nav" target="_blank" rel="noopener">Cotizar Ahora</a>
+    </nav>
+</header>
+
+<section class="cotizar-section" style="padding-top:34px;">
+    <div class="section-title">
+        <h2>Panel del dueño</h2>
+        <div class="line"></div>
+        <p class="subtitle">Aquí ve las cuentas nuevas, aprueba conductores y busca a cualquier persona en el archivo.</p>
+    </div>
+
+    <!-- ===== CERRADO ===== -->
+    <div class="caja" id="caja-cerrado">
+        <h3>Entre con su llave</h3>
+        <p class="subtitle" style="text-align:left;">Esta página es solo suya. Escriba la llave del dueño.</p>
+        <div class="form-group">
+            <label for="llave">Llave del dueño</label>
+            <input id="llave" type="password" placeholder="Su llave secreta">
+        </div>
+        <button class="btn-main btn-form" onclick="entrar()">Entrar al panel</button>
+        <div id="resultado-llave"></div>
+        <p class="form-aviso">¿No tiene llave todavía? Se pone en el cuaderno de Google, en
+        <b>Configuración del proyecto → Propiedades de la secuencia de comandos</b>, con el nombre
+        <b>LLAVE_DUENO</b>. La finca le ayuda.</p>
+    </div>
+
+    <!-- ===== ABIERTO ===== -->
+    <div id="caja-abierto" class="oculto">
+        <div class="caja">
+            <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:space-between;align-items:center;">
+                <h3 style="margin:0;">Resumen</h3>
+                <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                    <button class="mini gris" onclick="actualizar()">Actualizar</button>
+                    <button class="mini gris" onclick="salir()">Salir</button>
+                </div>
+            </div>
+            <div class="tarjetas">
+                <div class="tarjeta"><b id="n-pendientes">0</b><span>Conductores esperando aprobación</span></div>
+                <div class="tarjeta"><b id="n-activos">0</b><span>Cuentas activas</span></div>
+                <div class="tarjeta"><b id="n-cuentas">0</b><span>Cuentas en total</span></div>
+                <div class="tarjeta"><b id="n-demos">0</b><span>Demos pedidas</span></div>
+            </div>
+            <div id="aviso-modo"></div>
+
+            <div class="pestanas">
+                <div class="pestana activa" id="tab-pendientes" onclick="ver('pendientes')">Pendientes</div>
+                <div class="pestana" id="tab-cuentas" onclick="ver('cuentas')">Todas las cuentas</div>
+                <div class="pestana" id="tab-demos" onclick="ver('demos')">Demos</div>
+                <div class="pestana" id="tab-buscar" onclick="ver('buscar')">Buscar en el archivo</div>
+            </div>
+
+            <div id="vista-pendientes"></div>
+            <div id="vista-cuentas" class="oculto"></div>
+            <div id="vista-demos" class="oculto"></div>
+            <div id="vista-buscar" class="oculto">
+                <div class="buscador">
+                    <input id="dato" type="text" placeholder="Nombre, teléfono o correo (ej: Juan, 9045551234, juan@correo.com)">
+                    <button class="mini gris" onclick="buscar()">Buscar</button>
+                </div>
+                <div id="resultado-buscar"></div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<footer>
+    <div class="footer-content">
+        <div class="footer-line"></div>
+        <p class="copyright">&copy; 2026 SINCLAIR PICKUP TRUCKS · Panel privado del dueño.</p>
+    </div>
+</footer>
+
+<script>
+/* =====================================================================
+   PANEL DEL DUEÑO  (16-oct-2026)
+   Con el cuaderno puesto: lee y escribe en la hoja de Google (nube).
+   Sin cuaderno: usa los datos de prueba guardados en este navegador.
+   La llave se guarda en este navegador (nunca en la página).
+   ===================================================================== */
+var CUADERNO = '';                 /* <-- aquí va la dirección /exec cuando monte el cuaderno */
+var LLAVE_LOCAL = 'sinclair_llave_dueno';
+var LLAVE_CUENTAS = 'sinclair_cuentas_v1';
+var LLAVE_DEMOS = 'sinclair_demos_v1';
+var vista = 'pendientes';
+var ultimoPanel = null;
+
+function usarCuaderno() { return CUADERNO && CUADERNO.indexOf('http') === 0; }
+
+function leer(k, porDefecto) {
+  try { var t = localStorage.getItem(k); return t ? JSON.parse(t) : porDefecto; } catch (e) { return porDefecto; }
+}
+function guardar(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
+function escapar(t) {
+  return (t === null || t === undefined ? '' : String(t))
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+function fecha(iso) {
+  if (!iso) return '';
+  try { return new Date(iso).toLocaleString('es-US', {dateStyle: 'short', timeStyle: 'short'}); }
+  catch (e) { return iso; }
+}
+function papelBonito(p) {
+  var m = {corredor: 'Corredor', compania: 'Compañía de Transporte', cliente: 'Cliente / negocio', piloto: 'Piloto (conductor)'};
+  return m[p] || p || '';
+}
+function estadoEtiqueta(e) {
+  e = String(e || '');
+  if (e.indexOf('pendiente') === 0) return '<span class="etiqueta e-pend">pendiente</span>';
+  if (e === 'activo') return '<span class="etiqueta e-ok">activo</span>';
+  if (e === 'rechazado') return '<span class="etiqueta e-no">rechazado</span>';
+  return '<span class="etiqueta e-no">' + escapar(e) + '</span>';
+}
+
+/* ---------- entrar / salir ---------- */
+function entrar() {
+  var llave = (document.getElementById('llave').value || '').trim();
+  var salida = document.getElementById('resultado-llave');
+  if (llave.length < 3) { salida.innerHTML = '<div class="aviso ojo">Escriba su llave.</div>'; return; }
+  if (!usarCuaderno()) {
+    guardar(LLAVE_LOCAL, llave);
+    abrirPanel();
+    return;
+  }
+  salida.innerHTML = '<div class="aviso info">Comprobando con el cuaderno...</div>';
+  llamar({accion: 'panel', llave_dueno: llave}, function (r) {
+    if (r && r.ok) {
+      guardar(LLAVE_LOCAL, llave);
+      abrirPanel(r);
+    } else {
+      salida.innerHTML = '<div class="aviso ojo">' + escapar((r && r.mensaje) || 'No pude entrar.') + '</div>';
+    }
+  }, function () {
+    salida.innerHTML = '<div class="aviso ojo">No pude hablar con el cuaderno. Revise la conexión.</div>';
+  });
+}
+
+function salir() {
+  localStorage.removeItem(LLAVE_LOCAL);
+  document.getElementById('caja-abierto').classList.add('oculto');
+  document.getElementById('caja-cerrado').classList.remove('oculto');
+  document.getElementById('llave').value = '';
+  document.getElementById('resultado-llave').innerHTML = '';
+}
+
+function abrirPanel(datos) {
+  document.getElementById('caja-cerrado').classList.add('oculto');
+  document.getElementById('caja-abierto').classList.remove('oculto');
+  var aviso = document.getElementById('aviso-modo');
+  aviso.innerHTML = usarCuaderno()
+    ? '<div class="aviso ok"><b>Conectado al cuaderno de la empresa (en la nube).</b> Lo que ve aquí es lo mismo que hay en la hoja de Google.</div>'
+    : '<div class="aviso ojo"><b>Modo de prueba:</b> esto solo muestra lo que se guardó en ESTE navegador. Para ver lo de todos los teléfonos hay que montar el cuaderno de Google (la finca le pasa los 4 pasos).</div>';
+  if (datos) { pintar(datos); } else { actualizar(); }
+}
+
+function actualizar() {
+  if (usarCuaderno()) {
+    llamar({accion: 'panel', llave_dueno: leer(LLAVE_LOCAL, '')}, function (r) {
+      if (r && r.ok) { pintar(r); }
+      else { document.getElementById('aviso-modo').innerHTML = '<div class="aviso ojo">' + escapar((r && r.mensaje) || 'No pude leer el cuaderno.') + '</div>'; }
+    }, function () {
+      document.getElementById('aviso-modo').innerHTML = '<div class="aviso ojo">No pude hablar con el cuaderno.</div>';
+    });
+    return;
+  }
+  pintar(panelLocal());
+}
+
+function panelLocal() {
+  var cuentas = leer(LLAVE_CUENTAS, []);
+  var demos = leer(LLAVE_DEMOS, []);
+  var lista = cuentas.map(function (c) {
+    return {nombre: c.nombre, apellido: c.apellido, telefono: c.telefono, correo: c.correo,
+            papel: c.papel, tipo: c.tipo, empresa: c.empresa, estado: c.estado,
+            entradas: c.ingresos || 0, ultimo: c.ultimo_ingreso, fecha_alta: c.alta,
+            vehiculo: c.vehiculo, licencia: c.licencia, zona: c.zona, seguro: c.seguro,
+            acuse: c.acuse_ubicacion};
+  });
+  var pendientes = lista.filter(function (c) { return String(c.estado).indexOf('pendiente') === 0; });
+  var activos = lista.filter(function (c) { return c.estado === 'activo'; });
+  return {ok: true, cuentas: lista, pendientes: pendientes, activos: activos,
+          demos: demos.slice().reverse().slice(0, 40),
+          totales: {cuentas: lista.length, pendientes: pendientes.length, activos: activos.length}};
+}
+
+/* ---------- pintar ---------- */
+function pintar(d) {
+  ultimoPanel = d;
+  document.getElementById('n-pendientes').innerText = (d.totales && d.totales.pendientes) || 0;
+  document.getElementById('n-activos').innerText = (d.totales && d.totales.activos) || 0;
+  document.getElementById('n-cuentas').innerText = (d.totales && d.totales.cuentas) || 0;
+  document.getElementById('n-demos').innerText = (d.demos || []).length;
+
+  /* pendientes */
+  var htmlP = '';
+  if (!d.pendientes || !d.pendientes.length) {
+    htmlP = '<div class="aviso ok">No hay conductores esperando. <b>Todo al día.</b></div>';
+  } else {
+    d.pendientes.forEach(function (c) {
+      htmlP += ficha(c, true);
+    });
+  }
+  document.getElementById('vista-pendientes').innerHTML = htmlP;
+
+  /* todas */
+  var htmlC = '<table><tr><th>Nombre</th><th>Es</th><th>Empresa</th><th>Teléfono</th><th>Correo</th><th>Estado</th><th>Entradas</th><th>Última vez</th></tr>';
+  (d.cuentas || []).forEach(function (c) {
+    htmlC += '<tr><td>' + escapar(c.nombre + ' ' + (c.apellido || '')) + '</td><td>' + escapar(papelBonito(c.papel)) +
+      '</td><td>' + escapar(c.empresa || '') + '</td><td>' + escapar(c.telefono) + '</td><td>' + escapar(c.correo) +
+      '</td><td>' + estadoEtiqueta(c.estado) + '</td><td>' + (c.entradas || 0) + '</td><td>' + escapar(fecha(c.ultimo)) + '</td></tr>';
+  });
+  htmlC += '</table>';
+  document.getElementById('vista-cuentas').innerHTML = (d.cuentas && d.cuentas.length) ? htmlC
+    : '<div class="aviso ojo">Todavía no hay cuentas guardadas aquí.</div>';
+
+  /* demos */
+  var htmlD = '';
+  if (!d.demos || !d.demos.length) {
+    htmlD = '<div class="aviso ojo">Todavía no hay demos pedidas aquí.</div>';
+  } else {
+    d.demos.forEach(function (x) {
+      htmlD += '<div class="fila"><h4>' + escapar(x.empresa || 'Sin empresa') + '</h4><div class="datos">' +
+        'Tipo: <b>' + escapar(x.tipo || '') + '</b><br>' +
+        'Correo: ' + escapar(x.correo || '') + ' · Teléfono: ' + escapar(x.telefono || '') + '<br>' +
+        'Cuéntanos: ' + escapar(x.negocio || '') + '<br>' +
+        'Fecha que prefiere: ' + escapar(x.fecha || 'la que sea') + '<br>' +
+        '<small>Pedida el ' + escapar(fecha(x.cuando)) + '</small></div></div>';
+    });
+  }
+  document.getElementById('vista-demos').innerHTML = htmlD;
+}
+
+function ficha(c, conAcciones) {
+  var h = '<div class="fila"><h4>' + escapar(c.nombre + ' ' + (c.apellido || '')) +
+    ' ' + estadoEtiqueta(c.estado) + '</h4><div class="datos">' +
+    'Es: <b>' + escapar(papelBonito(c.papel)) + '</b><br>' +
+    'Teléfono: <b>' + escapar(c.telefono) + '</b> · Correo: ' + escapar(c.correo) + '<br>' +
+    (c.empresa ? 'Empresa: ' + escapar(c.empresa) + '<br>' : '') +
+    (c.vehiculo ? 'Vehículo: ' + escapar(c.vehiculo) + ' · Licencia: ' + escapar(c.licencia) + '<br>' : '') +
+    (c.zona ? 'Zona: ' + escapar(c.zona) + ' · Seguro: ' + escapar(c.seguro) + '<br>' : '') +
+    'Se registró: ' + escapar(fecha(c.fecha_alta)) + ' · Entradas: ' + (c.entradas || 0) +
+    (c.acuse ? '<br><b>Acuse de seguimiento de ubicación:</b> firmado el ' + escapar(fecha(c.acuse)) : '') +
+    '</div>';
+  if (conAcciones) {
+    h += '<div class="acciones">' +
+      '<button class="mini si" onclick="aprobar(\'' + escapar(c.telefono) + '\')">Aprobar</button>' +
+      '<button class="mini no" onclick="rechazar(\'' + escapar(c.telefono) + '\')">Rechazar</button>' +
+      '</div>';
+  }
+  return h + '</div>';
+}
+
+/* ---------- aprobar / rechazar ---------- */
+function aprobar(telefono) {
+  if (usarCuaderno()) {
+    llamar({accion: 'aprobar', llave_dueno: leer(LLAVE_LOCAL, ''), telefono: telefono}, function (r) {
+      alert((r && r.mensaje) || 'Hecho.'); actualizar();
+    });
+  } else {
+    cambiarEstadoLocal(telefono, 'activo');
+  }
+}
+function rechazar(telefono) {
+  if (usarCuaderno()) {
+    llamar({accion: 'rechazar', llave_dueno: leer(LLAVE_LOCAL, ''), telefono: telefono}, function (r) {
+      alert((r && r.mensaje) || 'Hecho.'); actualizar();
+    });
+  } else {
+    cambiarEstadoLocal(telefono, 'rechazado');
+  }
+}
+function cambiarEstadoLocal(telefono, estado) {
+  var cuentas = leer(LLAVE_CUENTAS, []);
+  cuentas.forEach(function (c) {
+    if (String(c.telefono).replace(/\D/g, '') === String(telefono).replace(/\D/g, '')) c.estado = estado;
+  });
+  guardar(LLAVE_CUENTAS, cuentas);
+  actualizar();
+}
+
+/* ---------- buscar en el archivo ---------- */
+function buscar() {
+  var dato = (document.getElementById('dato').value || '').trim();
+  var salida = document.getElementById('resultado-buscar');
+  if (dato.length < 2) { salida.innerHTML = '<div class="aviso ojo">Escriba al menos 2 letras o números.</div>'; return; }
+  if (usarCuaderno()) {
+    salida.innerHTML = '<div class="aviso info">Buscando en el cuaderno...</div>';
+    llamar({accion: 'buscar', llave_dueno: leer(LLAVE_LOCAL, ''), dato: dato}, function (r) {
+      if (r && r.ok) { salida.innerHTML = fichasArchivo(r.cuentas); }
+      else { salida.innerHTML = '<div class="aviso ojo">' + escapar((r && r.mensaje) || 'No encontré nada.') + '</div>'; }
+    });
+    return;
+  }
+  var d = dato.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  var lista = (panelLocal().cuentas || []).filter(function (c) {
+    var texto = (c.nombre + ' ' + c.apellido + ' ' + c.empresa + ' ' + c.correo + ' ' + c.telefono)
+      .toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    return texto.indexOf(d) >= 0;
+  });
+  salida.innerHTML = lista.length ? fichasArchivo(lista)
+    : '<div class="aviso ojo">No hay nadie en este archivo con ese dato. (Modo de prueba: solo hay lo guardado en este navegador.)</div>';
+}
+
+function fichasArchivo(lista) {
+  var h = '<div class="aviso ok">Encontré <b>' + lista.length + '</b> ficha(s).</div>';
+  lista.forEach(function (c) {
+    h += ficha(c, false);
+    if (c.demos && c.demos.length) {
+      h += '<div class="datos" style="margin:-6px 0 12px 14px;"><b>Demos pedidas:</b> ' +
+        c.demos.map(function (x) { return escapar(x.tipo + ' · ' + fecha(x.cuando)); }).join(' · ') + '</div>';
+    }
+    if (c.trabajos && c.trabajos.length) {
+      h += '<div class="datos" style="margin:-6px 0 12px 14px;"><b>Trabajos:</b> ' +
+        c.trabajos.map(function (x) { return escapar(x.codigo + ' (' + x.estado + ')'); }).join(' · ') + '</div>';
+    }
+  });
+  return h;
+}
+
+/* ---------- pestañas ---------- */
+function ver(cual) {
+  vista = cual;
+  ['pendientes', 'cuentas', 'demos', 'buscar'].forEach(function (v) {
+    var caja = document.getElementById('vista-' + v);
+    var tab = document.getElementById('tab-' + v);
+    if (caja) caja.classList.toggle('oculto', v !== cual);
+    if (tab) tab.classList.toggle('activa', v === cual);
+  });
+  if (cual === 'buscar') {
+    var i = document.getElementById('dato');
+    if (i) i.focus();
+  }
+}
+
+/* ---------- hablar con el cuaderno ---------- */
+function llamar(datos, alRecibir, alFallar) {
+  fetch(CUADERNO, {method: 'POST', body: JSON.stringify(datos)})
+    .then(function (r) { return r.json(); })
+    .then(function (resp) { if (alRecibir) alRecibir(resp); })
+    .catch(function (e) { if (alFallar) alFallar(e); else alert('No pude hablar con el cuaderno.'); });
+}
+
+/* ---------- al abrir: si ya entró antes, entra directo ---------- */
+window.addEventListener('load', function () {
+  if (leer(LLAVE_LOCAL, '')) { abrirPanel(); }
+});
+</script>
+</body>
+</html>
