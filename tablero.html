@@ -312,12 +312,11 @@ async function asignar(telefonoChofer){
   const codigo = asignandoCodigo;
   cerrarAsignar();
   const r = await pedir('asignar', {llave: llave, codigo: codigo, conductor_telefono: telefonoChofer});
-  if (!r.ok){
-    avisarEnPantalla('No se pudo asignar: ' + (r.error || r.mensaje || 'intente otra vez'), 'malo');
-  } else {
-    avisarEnPantalla('Listo: ' + codigo + ' asignada a ' + (r.conductor_nombre || 'el conductor') + '.');
-  }
-  cargar();
+  const fallo = r.ok ? '' : ('No se pudo asignar: ' + (r.error || r.mensaje || 'intente otra vez'));
+  const bien = r.ok ? ('Listo: ' + codigo + ' asignada a ' + (r.conductor_nombre || 'el conductor') + '.') : '';
+  await cargar();
+  if (fallo) avisarEnPantalla(fallo, 'malo');
+  else if (bien) avisarEnPantalla(bien, 'bien');
 }
 
 // ------------------------------------------------------------- cargar
