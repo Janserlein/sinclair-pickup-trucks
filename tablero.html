@@ -220,7 +220,7 @@ function pintarMapa(){
       html:'<div class="pin" style="background:' + (viejo ? '#f97316' : color) + '"></div>',
       iconSize:[16,16], iconAnchor:[8,8]
     });
-    const quien = o.conductor || 'Conductor';
+    const quien = nombreDeConductor(o.conductor) || 'Conductor';
     const m = L.marker([p.lat, p.lng], {icon:icono}).addTo(capaMarcadores);
     m.bindPopup(
       '<b>' + esc(quien) + '</b><br>' + esc(o.codigo) + ' · ' + esc(NOMBRES[o.estado] || o.estado) +
