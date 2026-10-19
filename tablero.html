@@ -255,7 +255,8 @@ function pintarMapa(){
     const quien = nombreDeConductor(o.conductor) || 'Conductor';
     const ficha = fichaChofer(o.conductor);
     const m = L.marker([p.lat, p.lng], {icon:icono}).addTo(capaMarcadores);
-    m.bindPopup(ficha, {maxWidth: 300});
+    m.bindPopup(fichaChofer(o.conductor, o.codigo, NOMBRES[o.estado] || o.estado,
+               hace(p.hora) + (viejo ? ' · SIN SEÑAL' : '')), {maxWidth: 300});
     m.bindTooltip(esc(quien) + (viejo ? ' ⚠' : ''), {permanent:true, direction:'top', className:'etiqueta-mapa', offset:[0,-10]});
     puestos.push([p.lat, p.lng]);
   });
