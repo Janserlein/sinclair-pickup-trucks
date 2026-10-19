@@ -158,6 +158,13 @@ async function pedir(accion, datos){
   try { return JSON.parse(texto); } catch(e){ return {ok:false, error:'respuesta rara'}; }
 }
 
+function nombreDeConductor(tel){
+  if (!tel) return '';
+  const limpio = String(tel).replace(/\D/g,'');
+  const c = (choferes||[]).find(x => String(x.telefono||'').replace(/\D/g,'') === limpio);
+  return (c && c.nombre) ? c.nombre : tel;
+}
+
 function minutosDesde(iso){
   if (!iso) return 99999;
   const t = Date.parse(iso);
@@ -223,6 +230,7 @@ function pintarOrdenes(){
   caja.innerHTML = ordenes.map(o => {
     const color = COLORES[o.estado] || '#94a3b8';
     const sinSenal = o.ultima_posicion && minutosDesde(o.ultima_posicion.hora) > SIN_SENAL_MIN;
+    const nombreChofer = nombreDeConductor(o.conductor);
     const botones = o.estado === 'nuevo' || o.estado === 'rechazado'
       ? '<button class="principal" onclick="abrirAsignar(\'' + esc(o.codigo) + '\')">ASIGNAR CONDUCTOR</button>'
       : '<button onclick="abrirAsignar(\'' + esc(o.codigo) + '\')">CAMBIAR CONDUCTOR</button>';
@@ -232,7 +240,7 @@ function pintarOrdenes(){
       '<div class="texto"><b>Qué:</b> ' + esc(o.que) + '</div>' +
       '<div class="texto"><b>De:</b> ' + esc(o.desde) + '</div>' +
       '<div class="texto"><b>A:</b> ' + esc(o.hasta) + '</div>' +
-      '<div class="texto"><b>Conductor:</b> ' + (o.conductor ? esc(o.conductor) : '<span style="color:#f87171">sin asignar</span>') + '</div>' +
+      '<div class="texto"><b>Conductor:</b> ' + (o.conductor ? esc(nombreChofer) : '<span style="color:#f87171">sin asignar</span>') + '</div>' +
       '<div class="fino">Entrega: ' + esc(ENTREGAS[o.entrega] || o.entrega) + ' · Creada ' + esc(hace(o.hora_creado)) +
       (o.ultima_posicion ? ' · Posición ' + esc(hace(o.ultima_posicion.hora)) : '') + '</div>' +
       (sinSenal ? '<div class="aviso-sin">⚠ SIN SEÑAL hace ' + Math.round(minutosDesde(o.ultima_posicion.hora)) + ' min</div>' : '') +
