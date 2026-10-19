@@ -1,0 +1,13 @@
+{
+  "name": "SP Trucks - Sinclair Pickup Trucks",
+  "short_name": "SP Trucks",
+  "description": "Pedir servicio y seguir su carga. Sinclair Pickup Trucks, Jacksonville FL.",
+  "start_url": "app-web.html",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#070c16",
+  "theme_color": "#070c16",
+  "icons": [
+    { "src": "sinclair.jpeg", "sizes": "1024x1024", "type": "image/jpeg", "purpose": "any" }
+  ]
+}

@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#070c16">
+<title>SP Trucks | Sinclair Pickup Trucks</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="manifest" href="manifest-app.json">
+<link rel="apple-touch-icon" href="sinclair.jpeg">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='18' fill='%230c2340'/><text x='50' y='68' font-size='58' text-anchor='middle' fill='%23dbe7f3' font-family='Georgia'>S</text></svg>">
+<style>
+  :root{
+    --fondo:#070c16; --panel:#0b0f19; --panel2:#111827; --borde:rgba(255,255,255,.09);
+    --azul:#38bdf8; --verde:#4ade80; --amarillo:#facc15; --naranja:#f97316; --rojo:#f87171;
+    --morado:#c084fc; --gris:#94a3b8; --humo:#64748b; --blanco:#f8fafc;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;background:var(--fondo);color:var(--blanco);
+    font-family:'Segoe UI',system-ui,-apple-system,sans-serif;min-height:100%}
+  body{padding-bottom:24px}
+  header{position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:10px;padding:12px 14px;
+    background:rgba(11,15,25,.96);border-bottom:1px solid var(--borde);backdrop-filter:blur(6px)}
+  .marca{display:flex;align-items:center;gap:9px}
+  .circulo{width:32px;height:32px;border-radius:50%;background:#0c2340;border:1px solid #28527a;
+    display:grid;place-items:center;font-family:Georgia,serif;font-size:19px;color:#dbe7f3}
+  .marca b{font-size:14px;letter-spacing:2px;display:block}
+  .marca small{font-size:8px;letter-spacing:1.6px;color:var(--azul);font-weight:800}
+  header .quien{margin-left:auto;text-align:right;font-size:11px;color:var(--gris)}
+  header button{margin-left:8px}
+  main{max-width:620px;margin:0 auto;padding:14px}
+
+  h2{font-size:13px;letter-spacing:1.2px;color:var(--humo);margin:18px 2px 10px;font-weight:800}
+  label{display:block;font-size:12px;color:var(--gris);font-weight:700;margin:14px 2px 6px}
+  input,textarea,select{width:100%;padding:13px 14px;border-radius:11px;border:1px solid var(--borde);
+    background:var(--panel2);color:var(--blanco);font-family:inherit;font-size:16px}
+  textarea{min-height:70px;resize:vertical}
+  button{font-family:inherit;cursor:pointer;border-radius:11px;border:1px solid var(--borde);
+    background:var(--panel2);color:var(--blanco);font-size:14px;font-weight:800;padding:12px 14px}
+  button.principal{background:var(--azul);color:#06202e;border-color:transparent;width:100%;padding:15px;
+    font-size:15px;letter-spacing:.5px;margin-top:18px}
+  button.verde{background:var(--verde);color:#06220f;border-color:transparent}
+  button.rojo{background:#2a1215;color:var(--rojo);border-color:#7f2d2d}
+  button:disabled{opacity:.55}
+  .fila{display:flex;gap:8px;flex-wrap:wrap}
+  .fila button{flex:1;min-width:120px}
+
+  .tarjeta{background:var(--panel);border:1px solid var(--borde);border-radius:14px;padding:13px;margin-bottom:11px}
+  .cab{display:flex;justify-content:space-between;align-items:center;gap:8px}
+  .codigo{font-weight:900;letter-spacing:1px;font-size:14px}
+  .chapa{font-size:10px;font-weight:900;padding:3px 9px;border-radius:20px;border:1px solid;white-space:nowrap}
+  .linea{font-size:13px;color:#cbd5e1;line-height:1.55;margin-top:5px}
+  .linea b{color:var(--gris)}
+  .fino{font-size:11px;color:var(--humo);margin-top:7px}
+
+  .opcion{display:block;width:100%;text-align:left;margin-bottom:8px;padding:13px 14px;border-radius:11px;
+    border:1px solid var(--borde);background:var(--panel);font-size:14px;font-weight:700;color:var(--gris)}
+  .opcion.activa{border-color:var(--azul);background:rgba(56,189,248,.10);color:var(--azul)}
+
+  .fotos{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+  .fotos img{width:86px;height:86px;border-radius:11px;object-fit:cover;border:1px solid var(--borde)}
+  .caja-foto{width:86px;height:86px;border-radius:11px;border:1.5px dashed var(--azul);display:grid;
+    place-items:center;color:var(--azul);font-size:12px;font-weight:800;text-align:center;padding:6px;cursor:pointer}
+  .caja-foto img{width:100%;height:100%;border-radius:10px}
+
+  .aviso{padding:11px 13px;border-radius:11px;font-size:12.5px;font-weight:700;line-height:1.5;margin:10px 0}
+  .aviso.malo{background:#2a1215;border:1px solid #7f2d2d;color:var(--rojo)}
+  .aviso.bien{background:#0f2a17;border:1px solid #2f7f4a;color:var(--verde)}
+  .aviso.info{background:#0e2130;border:1px solid #28527a;color:var(--azul)}
+
+  .pestanas{display:flex;gap:6px;background:var(--panel);border:1px solid var(--borde);border-radius:12px;padding:5px;margin:12px 0}
+  .pestanas button{flex:1;border:none;background:none;color:var(--gris);font-size:12.5px;padding:9px}
+  .pestanas button.activa{background:rgba(56,189,248,.12);color:var(--azul);border-radius:9px}
+  .oculto{display:none!important}
+
+  canvas#firma{width:100%;height:170px;background:#fff;border-radius:12px;border:1px solid var(--borde);touch-action:none}
+  #velo{position:fixed;inset:0;background:rgba(3,6,12,.9);z-index:50;display:none;overflow:auto;padding:16px}
+  #velo.abierto{display:block}
+  .caja-modal{max-width:560px;margin:20px auto;background:var(--panel);border:1px solid #28527a;border-radius:16px;padding:16px}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="marca"><div class="circulo">S</div><div><b>SINCLAIR</b><small>PICKUP TRUCKS</small></div></div>
+  <div class="quien" id="quien">sin entrar</div>
+  <button id="btn-salir" class="oculto" onclick="salir()">Salir</button>
+</header>
+
+<main>
+  <!-- ENTRAR -->
+  <section id="vista-entrar">
+    <h2>ENTRAR</h2>
+    <label>Su teléfono</label>
+    <input id="tel" type="tel" inputmode="numeric" placeholder="904-000-0000" maxlength="16">
+    <button class="principal" id="btn-codigo" onclick="pedirCodigo()">ENVIAR CÓDIGO</button>
+    <div id="paso-codigo" class="oculto">
+      <label>Código de 6 números (llega a su correo)</label>
+      <input id="codigo" type="tel" inputmode="numeric" placeholder="000000" maxlength="6">
+      <button class="principal" onclick="entrar()">ENTRAR</button>
+    </div>
+    <div id="aviso-entrar"></div>
+    <p class="fino">Si todavía no tiene cuenta, regístrese en <b>sinclairpickup.com</b> (sección «Crear cuenta») y vuelva aquí.</p>
+  </section>
+
+  <!-- CLIENTE -->
+  <section id="vista-cliente" class="oculto">
+    <div class="pestanas">
+      <button id="tab-pedir" class="activa" onclick="pestana('pedir')">Pedir servicio</button>
+      <button id="tab-mios" onclick="pestana('mios')">Mis pedidos</button>
+    </div>
+
+    <div id="panel-pedir">
+      <label>¿Qué hay que mover?</label>
+      <textarea id="que" placeholder="Ejemplo: una lavadora y dos cajas"></textarea>
+      <label>Desde dónde</label>
+      <input id="desde" placeholder="Dirección de recogida">
+      <label>Hasta dónde</label>
+      <input id="hasta" placeholder="Dirección de entrega">
+      <label>¿Para cuándo? (opcional)</label>
+      <input id="cuando" placeholder="Hoy en la tarde, mañana a las 10…">
+      <label>Forma de entrega</label>
+      <div id="entregas"></div>
+      <p class="fino" id="nota-entrega"></p>
+      <label>Fotos (opcional, hasta 3)</label>
+      <div class="fotos" id="fotos-cliente"></div>
+      <label>Notas para el conductor (opcional)</label>
+      <textarea id="notas" placeholder="Portón azul, llamar al llegar…"></textarea>
+      <button class="principal" id="btn-crear" onclick="crearOrden()">CREAR ORDEN</button>
+      <div id="aviso-pedir"></div>
+    </div>
+
+    <div id="panel-mios" class="oculto">
+      <div id="lista-mios"></div>
+    </div>
+  </section>
+
+  <!-- CONDUCTOR -->
+  <section id="vista-conductor" class="oculto">
+    <h2>MIS ENCARGOS</h2>
+    <div id="lista-encargos"></div>
+    <h2>ENTREGADAS</h2>
+    <div id="lista-hechas"></div>
+  </section>
+</main>
+
+<!-- ventana de entrega -->
+<div id="velo">
+  <div class="caja-modal">
+    <div class="cab"><b id="titulo-entrega">Entregar</b><button onclick="cerrarEntrega()">Cerrar</button></div>
+    <p class="fino" id="texto-entrega"></p>
+    <label>1) Foto de dónde dejó el paquete</label>
+    <div class="caja-foto" id="foto-paquete" onclick="document.getElementById('file-paquete').click()">PICA AQUÍ<br>LA FOTO</div>
+    <input id="file-paquete" type="file" accept="image/*" capture="environment" class="oculto">
+    <label>2) Foto de la dirección donde lo entregó</label>
+    <div class="caja-foto" id="foto-direccion" onclick="document.getElementById('file-direccion').click()">PICA AQUÍ<br>LA FOTO</div>
+    <input id="file-direccion" type="file" accept="image/*" capture="environment" class="oculto">
+    <div id="bloque-firma" class="oculto">
+      <label>3) Firma del cliente</label>
+      <canvas id="firma"></canvas>
+      <button onclick="borrarFirma()">Borrar firma</button>
+    </div>
+    <button class="principal verde" id="btn-entregar" onclick="mandarEntrega()">MARCAR ENTREGADA</button>
+    <div id="aviso-entrega"></div>
+  </div>
+</div>
+
+<script>
+// ============================================================================
+//  SP TRUCKS en el navegador (sirve para iPhone y para cualquier teléfono)
+//  Habla con el mismo cuaderno de Google que la app y el tablero.
+// ============================================================================
+const CUADERNO = 'https://script.google.com/macros/s/AKfycbxr7Rr1AnNFVafLy-pk_5nHa-6iZPb5bCYgEpHTBdlKaKHLaHwLXWWH1bI82y3RHPyG/exec';
+const ESTADOS = {nuevo:'NUEVA', asignado:'ASIGNADA', aceptado:'ACEPTADA', en_ruta:'EN RUTA',
+                 llego:'LLEGÓ', entregado:'ENTREGADA', cancelado:'CANCELADA', rechazado:'RECHAZADA'};
+const COLORES = {nuevo:'#38bdf8', asignado:'#c084fc', aceptado:'#22d3ee', en_ruta:'#facc15',
+                 llego:'#f97316', entregado:'#4ade80', cancelado:'#64748b', rechazado:'#f87171'};
+const ENTREGAS = {puerta:{t:'Dejar en la puerta', f:false}, garaje:{t:'Dejar en el garaje', f:false},
+                  personal:{t:'Entregar en mano (firma)', f:true}};
+
+let sesion = null;
+let entrega = 'puerta';
+let fotosCliente = [];
+let pedidoEntrega = null;
+let fotoPaquete = null, fotoDireccion = null;
+let relojGps = null;
+
+function esc(t){ return (t===null||t===undefined?'':String(t)).replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+
+async function pedir(accion, datos){
+  try{
+    const r = await fetch(CUADERNO, {method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'},
+      body: JSON.stringify(Object.assign({accion}, datos||{}))});
+    const t = await r.text();
+    try{ return JSON.parse(t); }catch(e){ return {ok:false, error:'Respuesta rara del cuaderno.'}; }
+  }catch(e){ return {ok:false, error:'Sin conexión. Revise el internet del teléfono.'}; }
+}
+
+function aviso(id, texto, tipo){
+  const c = document.getElementById(id);
+  if (!texto){ c.innerHTML=''; return; }
+  c.innerHTML = '<div class="aviso ' + (tipo||'info') + '">' + esc(texto) + '</div>';
+}
+
+function mostrar(vista){
+  ['vista-entrar','vista-cliente','vista-conductor'].forEach(v=>
+    document.getElementById(v).classList.toggle('oculto', v !== vista));
+}
+
+// ------------------------------------------------------------------ ENTRAR
+async function pedirCodigo(){
+  const tel = (document.getElementById('tel').value||'').replace(/\D/g,'');
+  if (tel.length < 10){ aviso('aviso-entrar','Escriba el teléfono completo (10 números).','malo'); return; }
+  const b = document.getElementById('btn-codigo'); b.disabled = true; b.textContent = 'MANDANDO…';
+  const r = await pedir('reconocer', {quien: tel});
+  b.disabled = false; b.textContent = 'ENVIAR CÓDIGO';
+  if (!r.ok){ aviso('aviso-entrar', r.mensaje || r.error || 'No pude mandar el código.', 'malo'); return; }
+  document.getElementById('paso-codigo').classList.remove('oculto');
+  aviso('aviso-entrar','Le mandamos un código de 6 números a su correo.','bien');
+}
+
+async function entrar(){
+  const tel = (document.getElementById('tel').value||'').replace(/\D/g,'');
+  const cod = (document.getElementById('codigo').value||'').replace(/\D/g,'');
+  if (cod.length !== 6){ aviso('aviso-entrar','El código son 6 números.','malo'); return; }
+  const r = await pedir('verificar', {telefono: tel, codigo: cod});
+  if (!r.ok){ aviso('aviso-entrar', r.mensaje || 'Ese código no sirve.', 'malo'); return; }
+  sesion = {nombre: (r.nombre||'') + (r.apellido? ' '+r.apellido:''), telefono: tel,
+            papel: (r.papel||'').toLowerCase(), tipo: (r.tipo||'').toLowerCase()};
+  localStorage.setItem('sp_sesion', JSON.stringify(sesion));
+  arrancarApp();
+}
+
+function salir(){
+  localStorage.removeItem('sp_sesion');
+  sesion = null; detenerGps();
+  document.getElementById('quien').textContent = 'sin entrar';
+  document.getElementById('btn-salir').classList.add('oculto');
+  mostrar('vista-entrar');
+}
+
+function arrancarApp(){
+  const esConductor = /piloto|conductor|chofer|driver/.test(sesion.papel + ' ' + sesion.tipo);
+  document.getElementById('quien').textContent = sesion.nombre || sesion.telefono;
+  document.getElementById('btn-salir').classList.remove('oculto');
+  if (esConductor){ mostrar('vista-conductor'); cargarEncargos(); }
+  else { mostrar('vista-cliente'); pintarEntregas(); cargarMios(); }
+}
+
+// ------------------------------------------------------------------ CLIENTE
+function pintarEntregas(){
+  const caja = document.getElementById('entregas');
+  caja.innerHTML = Object.keys(ENTREGAS).map(k =>
+    '<button class="opcion ' + (entrega===k?'activa':'') + '" onclick="elegirEntrega(\'' + k + '\')">' +
+    esc(ENTREGAS[k].t) + '</button>').join('');
+  document.getElementById('nota-entrega').textContent = entrega === 'personal'
+    ? 'Si elige «en mano», el conductor le va a pedir su firma en el teléfono al entregar.' : '';
+}
+function elegirEntrega(k){ entrega = k; pintarEntregas(); }
+
+function leerFoto(file, maxLado, calidad){
+  return new Promise((ok, malo) => {
+    const fr = new FileReader();
+    fr.onload = () => {
+      const img = new Image();
+      img.onload = () => {
+        let w = img.width, h = img.height;
+        const mayor = Math.max(w, h);
+        if (mayor > maxLado){ const f = maxLado/mayor; w = Math.round(w*f); h = Math.round(h*f); }
+        const c = document.createElement('canvas'); c.width = w; c.height = h;
+        c.getContext('2d').drawImage(img, 0, 0, w, h);
+        ok(c.toDataURL('image/jpeg', calidad));
+      };
+      img.onerror = malo;
+      img.src = fr.result;
+    };
+    fr.onerror = malo;
+    fr.readAsDataURL(file);
+  });
+}
+
+document.getElementById('fotos-cliente').innerHTML =
+  '<div class="caja-foto" onclick="document.getElementById(\'file-cliente\').click()">+<br>FOTO</div>';
+document.getElementById('fotos-cliente').insertAdjacentHTML('beforeend',
+  '<input id="file-cliente" type="file" accept="image/*" capture="environment" class="oculto">');
+
+document.addEventListener('change', async (e) => {
+  if (e.target.id === 'file-cliente'){
+    const f = e.target.files[0]; e.target.value = '';
+    if (!f) return;
+    if (fotosCliente.length >= 3){ alert('Ya tiene 3 fotos.'); return; }
+    const b64 = await leerFoto(f, 1100, 0.55);
+    fotosCliente.push(b64);
+    pintarFotos();
+  }
+  if (e.target.id === 'file-paquete' || e.target.id === 'file-direccion'){
+    const f = e.target.files[0]; e.target.value = '';
+    if (!f) return;
+    const b64 = await leerFoto(f, 1100, 0.55);
+    if (e.target.id === 'file-paquete'){ fotoPaquete = b64;
+      document.getElementById('foto-paquete').innerHTML = '<img src="' + b64 + '">'; }
+    else { fotoDireccion = b64;
+      document.getElementById('foto-direccion').innerHTML = '<img src="' + b64 + '">'; }
+  }
+});
+
+function pintarFotos(){
+  const caja = document.getElementById('fotos-cliente');
+  let html = fotosCliente.map((f,i)=>'<img src="' + f + '" onclick="quitarFoto(' + i + ')">').join('');
+  if (fotosCliente.length < 3) html += '<div class="caja-foto" onclick="document.getElementById(\'file-cliente\').click()">+<br>FOTO</div>';
+  caja.innerHTML = html;
+}
+function quitarFoto(i){ fotosCliente.splice(i,1); pintarFotos(); }
+
+async function crearOrden(){
+  const que = document.getElementById('que').value.trim();
+  const desde = document.getElementById('desde').value.trim();
+  const hasta = document.getElementById('hasta').value.trim();
+  if (!que || !desde || !hasta){
+    aviso('aviso-pedir','Hacen falta tres cosas: qué se mueve, desde dónde y hasta dónde.','malo'); return;
+  }
+  const b = document.getElementById('btn-crear'); b.disabled = true; b.textContent = 'CREANDO…';
+  const r = await pedir('crearOrden', {
+    telefono: sesion.telefono, nombre: sesion.nombre, que: que, desde: desde, hasta: hasta,
+    cuando: document.getElementById('cuando').value.trim(),
+    notas: document.getElementById('notas').value.trim(), entrega: entrega,
+    fotos: fotosCliente.map(f => f.split(',')[1] || f), idioma: 'es'
+  });
+  b.disabled = false; b.textContent = 'CREAR ORDEN';
+  if (!r.ok){ aviso('aviso-pedir', r.error || r.mensaje || 'No se pudo crear la orden.','malo'); return; }
+  aviso('aviso-pedir','¡Orden creada! Su código es ' + r.codigo + '. La finca ya la recibió.','bien');
+  document.getElementById('que').value=''; document.getElementById('desde').value='';
+  document.getElementById('hasta').value=''; document.getElementById('cuando').value='';
+  document.getElementById('notas').value=''; fotosCliente = []; pintarFotos();
+  cargarMios();
+}
+
+async function cargarMios(){
+  const caja = document.getElementById('lista-mios');
+  if (!sesion) return;
+  if (!caja.innerHTML) caja.innerHTML = '<p class="fino">Cargando…</p>';
+  const r = await pedir('mias', {telefono: sesion.telefono});
+  if (!r.ok){ caja.innerHTML = '<div class="aviso malo">' + esc(r.error||'No pude leer sus pedidos.') + '</div>'; return; }
+  const lista = r.pedidos || [];
+  if (!lista.length){ caja.innerHTML = '<p class="fino">Todavía no tiene pedidos.</p>'; return; }
+  caja.innerHTML = lista.map(p => {
+    const c = COLORES[p.estado] || '#94a3b8';
+    const fotos = (p.fotos||[]).filter(Boolean);
+    return '<div class="tarjeta">' +
+      '<div class="cab"><span class="codigo">' + esc(p.codigo) + '</span>' +
+      '<span class="chapa" style="color:' + c + ';border-color:' + c + '">' + esc(ESTADOS[p.estado]||p.estado) + '</span></div>' +
+      '<div class="linea"><b>Qué:</b> ' + esc(p.que) + '</div>' +
+      '<div class="linea"><b>De:</b> ' + esc(p.desde) + '</div>' +
+      '<div class="linea"><b>A:</b> ' + esc(p.hasta) + '</div>' +
+      (p.conductor ? '<div class="linea"><b>Conductor:</b> ' + esc(p.conductor) + '</div>' : '') +
+      '<div class="fino">Entrega: ' + esc((ENTREGAS[p.entrega]||{}).t || p.entrega) + '</div>' +
+      (p.estado === 'entregado' && fotos.length
+        ? '<div class="fotos">' + fotos.map(u=>'<img src="' + esc(u) + '">').join('') + '</div>' : '') +
+      '</div>';
+  }).join('');
+}
+
+// ---------------------------------------------------------------- CONDUCTOR
+async function cargarEncargos(){
+  const caja = document.getElementById('lista-encargos');
+  caja.innerHTML = '<p class="fino">Cargando…</p>';
+  const r = await pedir('misEncargos', {telefono: sesion.telefono});
+  if (!r.ok){ caja.innerHTML = '<div class="aviso malo">' + esc(r.error||'No pude leer sus encargos.') + '</div>'; return; }
+  const abiertos = r.abiertos || [];
+  const hechos = r.hechos || [];
+  caja.innerHTML = abiertos.length ? abiertos.map(o => {
+    const c = COLORES[o.estado] || '#94a3b8';
+    let botones = '';
+    if (o.estado === 'asignado') {
+      botones = '<div class="fila"><button class="verde" onclick="accionConductor(\'' + o.codigo + '\',\'aceptar\')">ACEPTAR</button>' +
+                '<button class="rojo" onclick="accionConductor(\'' + o.codigo + '\',\'rechazar\')">RECHAZAR</button></div>';
+    } else if (o.estado === 'aceptado') {
+      botones = '<div class="fila"><button class="verde" onclick="accionConductor(\'' + o.codigo + '\',\'salir\')">SALGO / EN RUTA</button></div>';
+    } else if (o.estado === 'en_ruta') {
+      botones = '<div class="fila"><button onclick="accionConductor(\'' + o.codigo + '\',\'llegar\')">LLEGUÉ</button>' +
+                '<button class="verde" onclick="abrirEntrega(\'' + o.codigo + '\',\'' + o.entrega + '\')">ENTREGAR</button></div>';
+    } else if (o.estado === 'llego') {
+      botones = '<div class="fila"><button class="verde" onclick="abrirEntrega(\'' + o.codigo + '\',\'' + o.entrega + '\')">ENTREGAR</button></div>';
+    }
+    return '<div class="tarjeta">' +
+      '<div class="cab"><span class="codigo">' + esc(o.codigo) + '</span>' +
+      '<span class="chapa" style="color:' + c + ';border-color:' + c + '">' + esc(ESTADOS[o.estado]||o.estado) + '</span></div>' +
+      '<div class="linea"><b>Qué:</b> ' + esc(o.que) + '</div>' +
+      '<div class="linea"><b>Recoger:</b> ' + esc(o.desde) + '</div>' +
+      '<div class="linea"><b>Entregar:</b> ' + esc(o.hasta) + '</div>' +
+      (o.telefono_cliente ? '<div class="linea"><b>Cliente:</b> ' + esc(o.telefono_cliente) + '</div>' : '') +
+      '<div class="fino">Entrega: ' + esc((ENTREGAS[o.entrega]||{}).t || o.entrega) + '</div>' +
+      '<div style="margin-top:10px">' + botones + '</div></div>';
+  }).join('') : '<p class="fino">No tiene encargos ahora mismo.</p>';
+
+  document.getElementById('lista-hechas').innerHTML = hechos.length
+    ? hechos.slice(0,8).map(o => '<div class="tarjeta"><div class="cab"><span class="codigo">' + esc(o.codigo) + '</span>' +
+        '<span class="chapa" style="color:#4ade80;border-color:#4ade80">ENTREGADA</span></div>' +
+        '<div class="fino">' + esc(o.hasta) + '</div></div>').join('')
+    : '<p class="fino">Todavía ninguna.</p>';
+
+  const enRuta = abiertos.filter(o => o.estado === 'en_ruta');
+  if (enRuta.length && !relojGps) empezarGps(enRuta[0].codigo);
+  if (!enRuta.length) detenerGps();
+}
+
+async function accionConductor(codigo, cual){
+  let r;
+  if (cual === 'aceptar') r = await pedir('aceptar', {telefono: sesion.telefono, codigo: codigo});
+  else if (cual === 'rechazar') r = await pedir('rechazar', {telefono: sesion.telefono, codigo: codigo, motivo: 'No puedo con esta carga'});
+  else if (cual === 'salir') r = await pedir('salir', {telefono: sesion.telefono, codigo: codigo});
+  else if (cual === 'llegar'){
+    const pos = await posicion();
+    r = await pedir('llegar', {telefono: sesion.telefono, codigo: codigo, lat: pos.lat, lng: pos.lng});
+  }
+  if (!r || !r.ok){ alert((r && (r.error||r.mensaje)) || 'No se pudo.'); return; }
+  await cargarEncargos();
+}
+
+// ------------------------------------------------------------------- GPS
+function posicion(){
+  return new Promise(ok => {
+    if (!navigator.geolocation) return ok({lat:null, lng:null});
+    navigator.geolocation.getCurrentPosition(
+      p => ok({lat: p.coords.latitude, lng: p.coords.longitude, precision: Math.round(p.coords.accuracy||0)}),
+      () => ok({lat:null, lng:null}), {enableHighAccuracy:true, timeout:12000, maximumAge:15000});
+  });
+}
+
+function empezarGps(codigo){
+  detenerGps();
+  const enviar = async () => {
+    const p = await posicion();
+    if (p.lat) await pedir('posicion', {telefono: sesion.telefono, pedido: codigo, lat: p.lat, lng: p.lng, precision: p.precision});
+  };
+  enviar();
+  relojGps = setInterval(enviar, 60000);
+}
+function detenerGps(){ if (relojGps){ clearInterval(relojGps); relojGps = null; } }
+
+// --------------------------------------------------------------- ENTREGA
+function abrirEntrega(codigo, tipo){
+  pedidoEntrega = {codigo: codigo, entrega: tipo};
+  fotoPaquete = null; fotoDireccion = null;
+  document.getElementById('foto-paquete').innerHTML = 'PICA AQUÍ<br>LA FOTO';
+  document.getElementById('foto-direccion').innerHTML = 'PICA AQUÍ<br>LA FOTO';
+  document.getElementById('titulo-entrega').textContent = 'Entregar ' + codigo;
+  document.getElementById('texto-entrega').textContent = tipo === 'personal'
+    ? 'Entrega EN MANO: saque las dos fotos y pida la firma al cliente.'
+    : 'Entrega sin firma: saque las dos fotos y listo.';
+  document.getElementById('bloque-firma').classList.toggle('oculto', tipo !== 'personal');
+  aviso('aviso-entrega','');
+  document.getElementById('velo').classList.add('abierto');
+  if (tipo === 'personal') prepararFirma();
+}
+function cerrarEntrega(){ document.getElementById('velo').classList.remove('abierto'); }
+
+async function mandarEntrega(){
+  if (!fotoPaquete || !fotoDireccion){
+    aviso('aviso-entrega','Hacen falta LAS DOS fotos: la del paquete y la de la dirección.','malo'); return;
+  }
+  const necesitaFirma = pedidoEntrega.entrega === 'personal';
+  const firma = necesitaFirma ? trazoFirma : '';
+  if (necesitaFirma && !firma){
+    aviso('aviso-entrega','Esta entrega es en mano: falta la firma del cliente.','malo'); return;
+  }
+  const b = document.getElementById('btn-entregar'); b.disabled = true; b.textContent = 'MANDANDO…';
+  const r = await pedir('entregarOrden', {
+    telefono: sesion.telefono, codigo: pedidoEntrega.codigo,
+    foto_paquete: fotoPaquete.split(',')[1] || fotoPaquete,
+    foto_direccion: fotoDireccion.split(',')[1] || fotoDireccion,
+    firma_svg: firma
+  });
+  b.disabled = false; b.textContent = 'MARCAR ENTREGADA';
+  if (!r.ok){ aviso('aviso-entrega', r.error || r.mensaje || 'No se pudo entregar.','malo'); return; }
+  aviso('aviso-entrega','¡Entregada! Quedó apuntada y al cliente le llega el aviso.','bien');
+  setTimeout(() => { cerrarEntrega(); cargarEncargos(); }, 1200);
+}
+
+// firma en un lienzo
+let trazoFirma = '';
+let lienzoFirma = null, ctxFirma = null, pintando = false;
+
+function prepararFirma(){
+  const cv = document.getElementById('firma');
+  const r = cv.getBoundingClientRect();
+  cv.width = r.width; cv.height = r.height;
+  ctxFirma = cv.getContext('2d');
+  ctxFirma.fillStyle = '#fff'; ctxFirma.fillRect(0,0,cv.width,cv.height);
+  ctxFirma.strokeStyle = '#0c2340'; ctxFirma.lineWidth = 2.5; ctxFirma.lineCap = 'round';
+  trazoFirma = '';
+  const punto = (e) => {
+    const rect = cv.getBoundingClientRect();
+    const x = (e.touches? e.touches[0].clientX : e.clientX) - rect.left;
+    const y = (e.touches? e.touches[0].clientY : e.clientY) - rect.top;
+    return {x: x, y: y};
+  };
+  cv.onpointerdown = (e) => { pintando = true; const p = punto(e);
+    trazoFirma += 'M' + Math.round(p.x) + ',' + Math.round(p.y);
+    ctxFirma.beginPath(); ctxFirma.moveTo(p.x, p.y); e.preventDefault(); };
+  cv.onpointermove = (e) => { if (!pintando) return; const p = punto(e);
+    trazoFirma += ' L' + Math.round(p.x) + ',' + Math.round(p.y);
+    ctxFirma.lineTo(p.x, p.y); ctxFirma.stroke(); e.preventDefault(); };
+  cv.onpointerup = () => { pintando = false; };
+  cv.onpointerleave = () => { pintando = false; };
+}
+
+function borrarFirma(){
+  if (!ctxFirma) return;
+  const cv = document.getElementById('firma');
+  ctxFirma.fillStyle = '#fff'; ctxFirma.fillRect(0,0,cv.width,cv.height);
+  trazoFirma = '';
+}
+
+// ------------------------------------------------------------- arranque
+(function arrancar(){
+  const guardada = localStorage.getItem('sp_sesion');
+  if (guardada){
+    try { sesion = JSON.parse(guardada); arrancarApp(); return; } catch(e){}
+  }
+  mostrar('vista-entrar');
+})();
+
+// refresco suave cada 25 segundos (solo si la pestana se esta mirando)
+setInterval(() => {
+  if (!sesion || document.visibilityState !== 'visible') return;
+  if (!document.getElementById('vista-cliente').classList.contains('oculto')) cargarMios();
+  else cargarEncargos();
+}, 25000);
+</script>
+</body>
+</html>
