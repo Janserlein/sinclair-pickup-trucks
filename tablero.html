@@ -42,7 +42,7 @@
   .tarjeta:hover{border-color:#28527a}
   .fila{display:flex;align-items:center;justify-content:space-between;gap:8px}
   .codigo{font-weight:900;letter-spacing:1px;font-size:13.5px}
-  .chapa{font-size:9.5px;font-weight:900;padding:3px 8px;border-radius:20px;border:1px solid;white-space:nowrap}
+  .chapa{font-size:9.5px;font-weight:900;padding:3px 8px;border-radius:20px;border:1px solid;white-space:nowrap;pointer-events:none;cursor:default}
   .texto{font-size:12px;color:#cbd5e1;line-height:1.5;margin-top:6px}
   .texto b{color:var(--gris);font-weight:700}
   .fino{font-size:10.5px;color:var(--humo);margin-top:6px}
@@ -88,13 +88,17 @@
     <div class="kpi"><b id="k-hechas">0</b><span>ENTREGADAS</span></div>
     <div class="kpi"><b id="k-choferes">0</b><span>CONDUCTORES</span></div>
   </div>
+  <button id="btn-refrescar" title="Volver a pedir los datos ahora">REFRESCAR</button>
   <div class="estado" id="conexion">conectando…</div>
   <div class="reloj" id="reloj">--:--:--</div>
 </header>
 
 <main>
   <section id="lista">
+    <div id="aviso-pantalla" style="display:none;margin:0 0 10px;padding:9px 11px;border-radius:10px;
+         background:#2a1a08;border:1px solid #7a4a12;color:#fbbf24;font-size:11.5px;font-weight:700;line-height:1.5"></div>
     <div class="titulo-seccion">ÓRDENES ABIERTAS</div>
+    <div style="font-size:10px;color:#64748b;margin:-4px 2px 8px">La etiqueta de color es solo informativa (no se pica). Los botones son los de abajo de cada orden.</div>
     <div id="ordenes"><div class="vacio">Cargando…</div></div>
     <div class="titulo-seccion">CONDUCTORES</div>
     <div id="choferes"><div class="vacio">Cargando…</div></div>
@@ -148,6 +152,16 @@ const NOMBRES = {
   llego: 'LLEGÓ', entregado: 'ENTREGADA', cancelado: 'CANCELADA', rechazado: 'RECHAZADA'
 };
 const ENTREGAS = { puerta: 'Dejar en la puerta', garaje: 'Dejar en el garaje', personal: 'En mano (firma)' };
+
+function avisarEnPantalla(texto, tipo){
+  const caja = document.getElementById('aviso-pantalla');
+  if (!texto){ caja.style.display = 'none'; caja.textContent = ''; return; }
+  caja.style.display = 'block';
+  caja.textContent = texto;
+  caja.style.background = tipo === 'malo' ? '#2a1215' : '#2a1a08';
+  caja.style.borderColor = tipo === 'malo' ? '#7f2d2d' : '#7a4a12';
+  caja.style.color = tipo === 'malo' ? '#f87171' : '#fbbf24';
+}
 
 function esc(t){ return (t===null||t===undefined?'':String(t)).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
 
@@ -279,7 +293,9 @@ function abrirAsignar(codigo){
   document.getElementById('asignar-codigo').textContent = codigo;
   const caja = document.getElementById('lista-choferes');
   if (!choferes.length){
-    caja.innerHTML = '<p style="color:#f87171">No hay conductores aprobados todavía.</p>';
+    caja.innerHTML = '<p style="color:#fbbf24;font-size:12.5px;line-height:1.6">Ahora mismo el tablero no tiene ' +
+      'ningún conductor aprobado.<br>Apruebe uno en el <b>panel del dueño</b> (pestaña de pendientes) y vuelva a ' +
+      'picar REFRESCAR.</p>';
   } else {
     caja.innerHTML = choferes.map(c =>
       '<button class="opcion" onclick="asignar(\'' + esc(c.telefono) + '\')">' +
@@ -296,7 +312,11 @@ async function asignar(telefonoChofer){
   const codigo = asignandoCodigo;
   cerrarAsignar();
   const r = await pedir('asignar', {llave: llave, codigo: codigo, conductor_telefono: telefonoChofer});
-  if (!r.ok){ alert('No se pudo asignar: ' + (r.error || r.mensaje || 'intente otra vez')); }
+  if (!r.ok){
+    avisarEnPantalla('No se pudo asignar: ' + (r.error || r.mensaje || 'intente otra vez'), 'malo');
+  } else {
+    avisarEnPantalla('Listo: ' + codigo + ' asignada a ' + (r.conductor_nombre || 'el conductor') + '.');
+  }
   cargar();
 }
 
@@ -312,13 +332,17 @@ async function cargar(){
       }
       throw new Error(r.error || r.mensaje || 'error');
     }
-    ordenes = r.ordenes || [];
-    choferes = r.conductores || [];
-    ultimosTotales = r.totales || {};
+    /* Solo se cambia lo que viene de verdad: si un refresco sale vacío o falla,
+       se queda lo último bueno en pantalla (no se borra sola). */
+    if (Array.isArray(r.ordenes)) ordenes = r.ordenes;
+    if (Array.isArray(r.conductores)) choferes = r.conductores;
+    if (r.totales) ultimosTotales = r.totales;
     pintarOrdenes(); pintarChoferes(); pintarKpis(ultimosTotales); pintarMapa();
     marcarConexion(true);
+    avisarEnPantalla('');
   } catch(e){
     marcarConexion(false);
+    avisarEnPantalla('Se cortó la conexión con el cuaderno. Se queda lo último que se vio y se reintenta solo cada 20 segundos.', 'malo');
   }
 }
 
@@ -349,6 +373,11 @@ document.getElementById('btn-entrar').onclick = async () => {
   cargar();
 };
 document.getElementById('llave').addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('btn-entrar').click(); });
+
+document.getElementById('btn-refrescar').onclick = () => {
+  marcarConexion(true);
+  cargar();
+};
 
 // ------------------------------------------------------------- arranque
 function reloj(){
