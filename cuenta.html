@@ -168,6 +168,18 @@
                 <label for="quien">Nombre, teléfono o correo</label>
                 <input id="quien" type="text" placeholder="Ej: Juan Pérez  ·  (904) 555-1234  ·  juan@correo.com">
             </div>
+            <div class="form-group">
+                <label>¿Cómo quieres recibir tu código de confirmación?</label>
+                <label style="display:flex;gap:8px;align-items:center;font-weight:600;margin:8px 0;">
+                    <input type="radio" name="metodo-codigo" value="correo" checked style="width:auto;margin:0;">
+                    Por correo electrónico
+                </label>
+                <label id="etiqueta-sms" style="display:flex;gap:8px;align-items:center;font-weight:600;margin:8px 0;">
+                    <input type="radio" name="metodo-codigo" value="sms" id="radio-sms" style="width:auto;margin:0;">
+                    Por mensaje de texto (SMS) al teléfono
+                </label>
+                <p class="form-aviso" id="aviso-sms" style="display:none;"></p>
+            </div>
             <button class="btn-main btn-form" onclick="pedirCodigo()">Continuar</button>
             <p class="form-aviso"><a href="javascript:void(0)" onclick="olvide()">¿Olvidaste la contraseña?</a></p>
 
@@ -430,6 +442,33 @@ function nuevoCodigo() {
   return String(Math.floor(100000 + Math.random() * 900000));
 }
 
+/* ---------- elegir como llega el codigo: correo o mensaje de texto ---------- */
+function metodoCodigo() {
+  var r = document.querySelector('input[name="metodo-codigo"]:checked');
+  return (r && r.value === 'sms') ? 'sms' : 'correo';
+}
+
+/* Si el servicio de textos todavia no esta contratado, se dice claro y se deja
+   el correo marcado (nadie se queda sin poder entrar). */
+function comprobarSms() {
+  if (!usarCuaderno()) return;
+  llamarCuaderno({accion: 'smsListo'}, function (r) {
+    if (r && r.listo) return;
+    var radio = document.getElementById('radio-sms');
+    var etiqueta = document.getElementById('etiqueta-sms');
+    var aviso = document.getElementById('aviso-sms');
+    if (radio) { radio.disabled = true; radio.checked = false; }
+    if (etiqueta) etiqueta.style.opacity = '0.55';
+    var correo = document.querySelector('input[name="metodo-codigo"][value="correo"]');
+    if (correo) correo.checked = true;
+    if (aviso) {
+      aviso.style.display = 'block';
+      aviso.textContent = 'El código por mensaje de texto se enciende en cuanto esté contratado el servicio. ' +
+                          'Por ahora el código llega al correo.';
+    }
+  }, function () { /* si no contesta, se queda como está: correo */ });
+}
+
 function pedirCodigo(esReenvio) {
   var dato = limpio(document.getElementById('quien').value);
   var salida = document.getElementById('resultado-entrar');
@@ -442,12 +481,16 @@ function pedirCodigo(esReenvio) {
     caja.classList.remove('oculto');
     document.getElementById('aviso-codigo').innerHTML =
       '<div class="aviso info">Buscando tu cuenta en el cuaderno de la empresa...</div>';
-    llamarCuaderno({accion: 'reconocer', quien: dato}, function (r) {
+    llamarCuaderno({accion: 'reconocer', quien: dato, metodo: metodoCodigo()}, function (r) {
       if (r && r.ok) {
+        var porDonde = (r.metodo === 'sms')
+          ? 'Te mandamos el código por <b>mensaje de texto</b> al <b>' + escapar(r.telefono) + '</b>.'
+          : 'Te mandamos el <b>código de 6 dígitos</b> a <b>' + escapar(r.correo || r.telefono || 'tu correo') + '</b>.';
         document.getElementById('aviso-codigo').innerHTML =
           'Te reconozco: <b>' + escapar(r.nombre + ' ' + r.apellido) + '</b> (' + nombrePapel(r.papel) + ').' +
-          '<br>Te mandamos un <b>código de 6 dígitos</b> a <b>' + escapar(r.correo || r.telefono || 'tu correo') + '</b>.' +
-          '<br><small>Vale 10 minutos y solo sirve una vez. Lo manda el cuaderno de la empresa.</small>';
+          '<br>' + porDonde +
+          (r.aviso ? '<br><small>' + escapar(r.aviso) + '</small>' : '') +
+          '<br><small>Vale 10 minutos y solo sirve una vez.</small>';
       } else {
         document.getElementById('aviso-codigo').innerHTML =
           '<div class="linea-ojo">' + escapar((r && r.mensaje) || 'No pude mandar el código.') +
@@ -633,6 +676,9 @@ function enviarDemo(ev) {
   setTimeout(function () { cerrarDemo(); }, 2500);
   return true; /* sigue el envio normal del formulario por correo */
 }
+
+/* Al abrir la pagina: se mira si los mensajes de texto ya estan encendidos. */
+try { comprobarSms(); } catch (e) {}
 </script>
 
 <!-- LINEA DE CONTACTO (puesta 19-oct-2026 por orden del dueno) -->
