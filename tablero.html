@@ -129,6 +129,22 @@
   </div>
 </div>
 
+<!-- cancelar un pedido (lo pide el dueño: no tiene que pedirle a nadie que lo cancele) -->
+<div class="velo" id="velo-cancelar">
+  <div class="caja" style="position:relative">
+    <button class="cerrar" onclick="cerrarCancelar()">&times;</button>
+    <h3>Cancelar el pedido <span id="cancelar-codigo"></span></h3>
+    <p>El pedido se cierra: sale de esta lista y el conductor ya no lo ve en su app.
+       <b>Esto no se puede deshacer.</b></p>
+    <input id="cancelar-motivo" placeholder="Motivo (opcional): el cliente se arrepintió, ya no lo quiere…">
+    <div class="acciones">
+      <button class="peligro" id="btn-cancelar-si" onclick="cancelarPedido()">SÍ, CANCELAR EL PEDIDO</button>
+      <button onclick="cerrarCancelar()">NO, DÉJALO</button>
+    </div>
+    <p class="fino" id="error-cancelar" style="color:#f87171"></p>
+  </div>
+</div>
+
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
 // ============================================================================
@@ -281,9 +297,10 @@ function pintarOrdenes(){
     const color = COLORES[o.estado] || '#94a3b8';
     const sinSenal = o.ultima_posicion && minutosDesde(o.ultima_posicion.hora) > SIN_SENAL_MIN;
     const nombreChofer = nombreDeConductor(o.conductor);
-    const botones = o.estado === 'nuevo' || o.estado === 'rechazado'
+    const botones = (o.estado === 'nuevo' || o.estado === 'rechazado'
       ? '<button class="principal" onclick="abrirAsignar(\'' + esc(o.codigo) + '\')">ASIGNAR CONDUCTOR</button>'
-      : '<button onclick="abrirAsignar(\'' + esc(o.codigo) + '\')">CAMBIAR CONDUCTOR</button>';
+      : '<button onclick="abrirAsignar(\'' + esc(o.codigo) + '\')">CAMBIAR CONDUCTOR</button>') +
+      '<button class="peligro" onclick="abrirCancelar(\'' + esc(o.codigo) + '\')">CANCELAR</button>';
     return '<div class="tarjeta">' +
       '<div class="fila"><span class="codigo">' + esc(o.codigo) + '</span>' +
       '<span class="chapa" style="color:' + color + ';border-color:' + color + '">' + esc(NOMBRES[o.estado] || o.estado) + '</span></div>' +
@@ -354,6 +371,49 @@ async function asignar(telefonoChofer){
   await cargar();
   if (fallo) avisarEnPantalla(fallo, 'malo');
   else if (bien) avisarEnPantalla(bien, 'bien');
+}
+
+// ------------------------------------------------------------- cancelar
+// Pedido del dueño (20-oct-2026): CADA pedido lleva su boton CANCELAR, para
+// cerrarlo él mismo (cliente que se arrepiente, pedido rechazado, etc.) sin
+// tener que pedirle a nadie que lo haga.
+let cancelandoCodigo = null;
+
+function abrirCancelar(codigo){
+  cancelandoCodigo = codigo;
+  document.getElementById('cancelar-codigo').textContent = codigo;
+  document.getElementById('cancelar-motivo').value = '';
+  document.getElementById('error-cancelar').textContent = '';
+  document.getElementById('velo-cancelar').classList.add('abierto');
+  setTimeout(function(){ document.getElementById('cancelar-motivo').focus(); }, 120);
+}
+function cerrarCancelar(){
+  document.getElementById('velo-cancelar').classList.remove('abierto');
+  cancelandoCodigo = null;
+}
+
+async function cancelarPedido(){
+  if (!cancelandoCodigo) return;
+  const codigo = cancelandoCodigo;
+  const motivo = document.getElementById('cancelar-motivo').value.trim();
+  const boton = document.getElementById('btn-cancelar-si');
+  boton.disabled = true;
+  const textoOriginal = boton.textContent;
+  boton.textContent = 'CANCELANDO…';
+  try {
+    const r = await pedir('cancelar', {llave: llave, codigo: codigo, motivo: motivo});
+    cerrarCancelar();
+    const bien = r.ok ? ('Pedido ' + codigo + ' cancelado. Ya no sale en la lista.') : '';
+    const fallo = r.ok ? '' : ('No se pudo cancelar: ' + (r.error || r.mensaje || 'intente otra vez'));
+    await cargar();
+    if (fallo) avisarEnPantalla(fallo, 'malo');
+    else if (bien) avisarEnPantalla(bien, 'bien');
+  } catch (e){
+    document.getElementById('error-cancelar').textContent = 'No hubo respuesta. Revise el internet e intente otra vez.';
+  } finally {
+    boton.disabled = false;
+    boton.textContent = textoOriginal;
+  }
 }
 
 // ------------------------------------------------------------- cargar
