@@ -172,11 +172,14 @@ const NOMBRES = {
 };
 const ENTREGAS = { puerta: 'Dejar en la puerta', garaje: 'Dejar en el garaje', personal: 'En mano (firma)' };
 
+let avisoHasta = 0;   // los avisos duran 15 s (si no, el refresco de 20 s los borraba)
+
 function avisarEnPantalla(texto, tipo){
   const caja = document.getElementById('aviso-pantalla');
-  if (!texto){ caja.style.display = 'none'; caja.textContent = ''; return; }
+  if (!texto){ caja.style.display = 'none'; caja.textContent = ''; avisoHasta = 0; return; }
   caja.style.display = 'block';
   caja.textContent = texto;
+  avisoHasta = Date.now() + 15000;
   caja.style.background = tipo === 'malo' ? '#2a1215' : '#2a1a08';
   caja.style.borderColor = tipo === 'malo' ? '#7f2d2d' : '#7a4a12';
   caja.style.color = tipo === 'malo' ? '#f87171' : '#fbbf24';
@@ -184,11 +187,22 @@ function avisarEnPantalla(texto, tipo){
 
 function esc(t){ return (t===null||t===undefined?'':String(t)).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
 
-async function pedir(accion, datos){
+/* Habla con el cuaderno. Si tarda mas de la cuenta, corta y avisa:
+   asi un boton NUNCA se queda pegado en "CANCELANDO..." para siempre. */
+async function pedir(accion, datos, segundos){
   const cuerpo = JSON.stringify(Object.assign({accion}, datos||{}));
-  const r = await fetch(CUADERNO, {method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'}, body:cuerpo});
-  const texto = await r.text();
-  try { return JSON.parse(texto); } catch(e){ return {ok:false, error:'respuesta rara'}; }
+  const corte = new AbortController();
+  const despertador = setTimeout(() => corte.abort(), (segundos || 60) * 1000);
+  try {
+    const r = await fetch(CUADERNO, {method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'},
+                                   body:cuerpo, signal: corte.signal});
+    const texto = await r.text();
+    try { return JSON.parse(texto); } catch(e){ return {ok:false, error:'respuesta rara'}; }
+  } catch (e){
+    return {ok:false, error:'El cuaderno tardó demasiado en contestar. Mire si el pedido ya no está en la lista; si sigue ahí, vuelva a intentarlo.'};
+  } finally {
+    clearTimeout(despertador);
+  }
 }
 
 function datosChofer(tel){
@@ -400,16 +414,21 @@ async function cancelarPedido(){
   boton.disabled = true;
   const textoOriginal = boton.textContent;
   boton.textContent = 'CANCELANDO…';
+  avisarEnPantalla('Cancelando el pedido ' + codigo + '…', 'bien');
   try {
-    const r = await pedir('cancelar', {llave: llave, codigo: codigo, motivo: motivo});
-    cerrarCancelar();
-    const bien = r.ok ? ('Pedido ' + codigo + ' cancelado. Ya no sale en la lista.') : '';
-    const fallo = r.ok ? '' : ('No se pudo cancelar: ' + (r.error || r.mensaje || 'intente otra vez'));
-    await cargar();
-    if (fallo) avisarEnPantalla(fallo, 'malo');
-    else if (bien) avisarEnPantalla(bien, 'bien');
+    const r = await pedir('cancelar', {llave: llave, codigo: codigo, motivo: motivo}, 45);
+    if (r.ok){
+      cerrarCancelar();
+      /* Se quita de la lista EN EL ACTO (no se espera al refresco). */
+      ordenes = ordenes.filter(function(o){ return o.codigo !== codigo; });
+      pintarOrdenes(); pintarMapa();
+      avisarEnPantalla('Pedido ' + codigo + ' cancelado. Ya no sale en la lista.', 'bien');
+      cargar();                     // los numeros se refrescan por detras
+    } else {
+      avisarEnPantalla('No se pudo cancelar: ' + (r.error || r.mensaje || 'intente otra vez'), 'malo');
+    }
   } catch (e){
-    document.getElementById('error-cancelar').textContent = 'No hubo respuesta. Revise el internet e intente otra vez.';
+    avisarEnPantalla('No hubo respuesta. Revise el internet e intente otra vez.', 'malo');
   } finally {
     boton.disabled = false;
     boton.textContent = textoOriginal;
@@ -435,7 +454,7 @@ async function cargar(){
     if (r.totales) ultimosTotales = r.totales;
     pintarOrdenes(); pintarChoferes(); pintarKpis(ultimosTotales); pintarMapa();
     marcarConexion(true);
-    avisarEnPantalla('');
+    if (Date.now() > avisoHasta) avisarEnPantalla('');
   } catch(e){
     marcarConexion(false);
     avisarEnPantalla('Se cortó la conexión con el cuaderno. Se queda lo último que se vio y se reintenta solo cada 20 segundos.', 'malo');
