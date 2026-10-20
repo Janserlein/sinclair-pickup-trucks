@@ -348,9 +348,14 @@ function cartelPedido(o){
   let cuando = o.cuando || 'sin hora puesta';
   if (o.fecha_recogida){
     const f = String(o.fecha_recogida);
-    const dia = f.slice(0, 10).split('-').reverse().join('/');
-    const hora = f.length > 15 ? f.slice(11, 16) : '';
-    cuando = dia + (hora ? ' a las ' + hora : '');
+    const d = new Date(f);
+    if (!isNaN(d.getTime())){
+      /* Se enseña en la hora de aquí (Florida), no en la hora de Greenwich. */
+      cuando = d.toLocaleDateString('es-US', {day:'2-digit', month:'2-digit', year:'numeric'}) +
+               ' a las ' + d.toLocaleTimeString('es-US', {hour:'2-digit', minute:'2-digit'});
+    } else {
+      cuando = f.slice(0, 10).split('-').reverse().join('/');
+    }
   }
   const pago = o.precio ? esc(o.precio) + (o.pago_metodo ? ' · ' + esc(o.pago_metodo) : '') : 'sin poner';
   const millas = o.millas ? esc(o.millas) + ' millas' : 'sin calcular';
