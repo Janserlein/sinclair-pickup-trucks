@@ -69,6 +69,9 @@
   .cerrar{position:absolute;top:8px;right:12px;background:none;border:none;color:var(--gris);font-size:20px}
 
   .pin{width:16px;height:16px;border-radius:50%;border:2px solid #06131f;box-shadow:0 0 0 2px rgba(56,189,248,.35)}
+  .pin-pedido{width:18px;height:18px;border-radius:4px 50% 50% 50%;transform:rotate(45deg);
+              border:2px solid #06131f;box-shadow:0 0 0 2px rgba(56,189,248,.45)}
+  .pin-entrega{width:12px;height:12px;border-radius:50%;background:#94a3b8;border:2px solid #06131f}
   .etiqueta-mapa{background:rgba(6,12,23,.92);border:1px solid #28527a;border-radius:8px;padding:3px 7px;
                  font-size:10.5px;font-weight:800;color:var(--blanco);white-space:nowrap}
 </style>
@@ -90,6 +93,7 @@
     <div class="kpi"><b id="k-choferes">0</b><span>CONDUCTORES</span></div>
   </div>
   <button id="btn-pines" title="Llevar el mapa otra vez al conductor">VER PINES</button>
+  <button id="btn-millas" title="Buscar las direcciones y calcular las millas de los pedidos">MILLAS</button>
   <button id="btn-refrescar" title="Volver a pedir los datos ahora">REFRESCAR</button>
   <div class="estado" id="conexion">conectando…</div>
   <div class="reloj" id="reloj">--:--:--</div>
@@ -259,6 +263,120 @@ function hace(iso){
   return 'hace ' + Math.floor(h/24) + ' días';
 }
 
+// ------------------------------------------- pines de los pedidos (20-oct)
+// El tablero busca las direcciones (OpenStreetMap) y las millas (OSRM) y las
+// guarda en el cuaderno. Asi la app las recibe ya hechas.
+const GEO = 'https://nominatim.openstreetmap.org/search';
+const RUTA = 'https://router.project-osrm.org/route/v1/driving/';
+let geoTrabajando = false;
+let geoFallados = {};        // codigos que ya fallaron (para no repetir en bucle)
+
+function esperar(ms){ return new Promise(r => setTimeout(r, ms)); }
+
+function faltaGeo(o){
+  return !(o.lat_desde && o.lng_desde && o.lat_hasta && o.lng_hasta && o.millas);
+}
+
+async function buscarPunto(direccion){
+  const texto = String(direccion || '').trim();
+  if (!texto) return null;
+  const consulta = /florida|jacksonville|,\s*fl\b/i.test(texto) ? texto : texto + ', Jacksonville, FL, USA';
+  try {
+    const r = await fetch(GEO + '?format=json&limit=1&countrycodes=us&q=' + encodeURIComponent(consulta),
+                          {headers:{'Accept':'application/json'}});
+    if (!r.ok) return null;
+    const lista = await r.json();
+    if (!lista || !lista.length) return null;
+    return {lat: Number(lista[0].lat), lng: Number(lista[0].lon)};
+  } catch(e){ return null; }
+}
+
+function millasRecta(a, b){
+  const rad = Math.PI / 180;
+  const dLat = (b.lat - a.lat) * rad, dLng = (b.lng - a.lng) * rad;
+  const h = Math.sin(dLat/2)**2 + Math.cos(a.lat*rad) * Math.cos(b.lat*rad) * Math.sin(dLng/2)**2;
+  return (6371000 * 2 * Math.atan2(Math.sqrt(h), Math.sqrt(1-h))) / 1609.34;
+}
+
+async function millasRuta(a, b){
+  try {
+    const r = await fetch(RUTA + a.lng + ',' + a.lat + ';' + b.lng + ',' + b.lat + '?overview=false');
+    if (r.ok){
+      const j = await r.json();
+      if (j.routes && j.routes.length) return Math.round(j.routes[0].distance / 1609.34 * 10) / 10;
+    }
+  } catch(e){}
+  return Math.round(millasRecta(a, b) * 1.3 * 10) / 10;
+}
+
+/* Va calculando de uno en uno (OpenStreetMap no deja pedir mas de uno por segundo). */
+async function completarMillas(){
+  if (geoTrabajando || !llave) return;
+  const pendiente = (ordenes || []).find(o => faltaGeo(o) && !geoFallados[o.codigo]);
+  if (!pendiente) return;
+  geoTrabajando = true;
+  try {
+    let a = (pendiente.lat_desde && pendiente.lng_desde)
+      ? {lat: Number(pendiente.lat_desde), lng: Number(pendiente.lng_desde)}
+      : await buscarPunto(pendiente.desde);
+    if (!a) await esperar(1100);
+    let b = (pendiente.lat_hasta && pendiente.lng_hasta)
+      ? {lat: Number(pendiente.lat_hasta), lng: Number(pendiente.lng_hasta)}
+      : await buscarPunto(pendiente.hasta);
+    if (a && !b) await esperar(1100);
+    const m = (a && b) ? await millasRuta(a, b) : 0;
+    if (a || b || m){
+      const r = await pedir('coordenadas', {llave: llave, codigo: pendiente.codigo,
+        lat_desde: a ? a.lat : '', lng_desde: a ? a.lng : '',
+        lat_hasta: b ? b.lat : '', lng_hasta: b ? b.lng : '', millas: m});
+      if (r && r.ok){
+        avisarEnPantalla('Millas calculadas para ' + pendiente.codigo + (m ? ': ' + m + ' millas' : ''), 'bien');
+        await cargar();
+      }
+    }
+    if (!a || !b){
+      geoFallados[pendiente.codigo] = true;
+      avisarEnPantalla('No encontré la dirección del pedido ' + pendiente.codigo + '. Revise que tenga calle y ciudad.', 'malo');
+    }
+  } finally {
+    geoTrabajando = false;
+  }
+}
+
+function cartelPedido(o){
+  const color = COLORES[o.estado] || '#94a3b8';
+  let cuando = o.cuando || 'sin hora puesta';
+  if (o.fecha_recogida){
+    const f = String(o.fecha_recogida);
+    const dia = f.slice(0, 10).split('-').reverse().join('/');
+    const hora = f.length > 15 ? f.slice(11, 16) : '';
+    cuando = dia + (hora ? ' a las ' + hora : '');
+  }
+  const pago = o.precio ? esc(o.precio) + (o.pago_metodo ? ' · ' + esc(o.pago_metodo) : '') : 'sin poner';
+  const millas = o.millas ? esc(o.millas) + ' millas' : 'sin calcular';
+  const tel = String(o.telefono || '').replace(/\D/g, '');
+  const nombreChofer = o.conductor_nombre || (o.conductor ? nombreDeConductor(o.conductor) : '');
+  return '<div style="font-family:Segoe UI,sans-serif;min-width:240px">' +
+    '<div style="display:flex;justify-content:space-between;gap:8px;align-items:center">' +
+      '<b style="font-size:14px;letter-spacing:1px">' + esc(o.codigo) + '</b>' +
+      '<span style="font-size:10px;font-weight:900;color:' + color + ';border:1px solid ' + color +
+        ';border-radius:10px;padding:1px 6px">' + esc(NOMBRES[o.estado] || o.estado) + '</span>' +
+    '</div>' +
+    '<div style="margin-top:6px;font-size:12px;line-height:1.55;color:#1f2937">' +
+      '<div><b>Qué:</b> ' + esc(o.que) + '</div>' +
+      '<div><b>Recoger:</b> ' + esc(o.desde) + '</div>' +
+      '<div><b>Hora de recogida:</b> ' + esc(cuando) + '</div>' +
+      '<div><b>Entregar en:</b> ' + esc(o.hasta) + '</div>' +
+      '<div><b>Se paga:</b> ' + pago + '</div>' +
+      '<div><b>Millas:</b> ' + millas + '</div>' +
+      '<div><b>Cliente:</b> ' + esc(o.cliente) + '</div>' +
+      '<div><b>Conductor:</b> ' + (nombreChofer ? esc(nombreChofer) : '<span style="color:#b45309">sin asignar</span>') + '</div>' +
+    '</div>' +
+    (tel ? '<div style="margin-top:6px"><a href="https://wa.me/1' + tel + '" target="_blank" ' +
+      'style="font-size:11px;font-weight:800;color:#0ea5e9;text-decoration:none">WHATSAPP ' + esc(o.telefono) + '</a></div>' : '') +
+  '</div>';
+}
+
 // ------------------------------------------------------------------ mapa
 function prepararMapa(){
   mapa = L.map('mapa', {zoomControl:true, attributionControl:true}).setView([30.3322, -81.6557], 11); // Jacksonville
@@ -291,6 +409,28 @@ function pintarMapa(){
     m.bindTooltip(esc(quien) + (viejo ? ' ⚠' : ''), {permanent:true, direction:'top', className:'etiqueta-mapa', offset:[0,-10]});
     puestos.push([p.lat, p.lng]);
   });
+  /* Pines de los pedidos: uno en el sitio de recoger (de color) y otro en el
+     de entregar (gris). Al picarlos sale el cartel con todos los datos. */
+  ordenes.forEach(o => {
+    const color = COLORES[o.estado] || '#38bdf8';
+    if (o.lat_desde && o.lng_desde){
+      const ic = L.divIcon({className:'', html:'<div class="pin-pedido" style="background:' + color + '"></div>',
+                            iconSize:[18,18], iconAnchor:[9,9]});
+      L.marker([Number(o.lat_desde), Number(o.lng_desde)], {icon: ic})
+        .addTo(capaMarcadores)
+        .bindPopup(cartelPedido(o), {maxWidth: 320});
+      puestos.push([Number(o.lat_desde), Number(o.lng_desde)]);
+    }
+    if (o.lat_hasta && o.lng_hasta){
+      const ic2 = L.divIcon({className:'', html:'<div class="pin-entrega"></div>',
+                             iconSize:[12,12], iconAnchor:[6,6]});
+      L.marker([Number(o.lat_hasta), Number(o.lng_hasta)], {icon: ic2})
+        .addTo(capaMarcadores)
+        .bindPopup(cartelPedido(o), {maxWidth: 320});
+      puestos.push([Number(o.lat_hasta), Number(o.lng_hasta)]);
+    }
+  });
+
   /* OJO: el mapa NO se mueve solo. Solo se encuadra la PRIMERA vez que se pinta.
      Si el dueño se va a mirar otra dirección, ahí se queda hasta que él quiera. */
   if (!encuadreHecho && puestos.length){
@@ -455,6 +595,7 @@ async function cargar(){
     pintarOrdenes(); pintarChoferes(); pintarKpis(ultimosTotales); pintarMapa();
     marcarConexion(true);
     if (Date.now() > avisoHasta) avisarEnPantalla('');
+    completarMillas();          // de uno en uno, por detras
   } catch(e){
     marcarConexion(false);
     avisarEnPantalla('Se cortó la conexión con el cuaderno. Se queda lo último que se vio y se reintenta solo cada 20 segundos.', 'malo');
@@ -497,6 +638,12 @@ document.getElementById('btn-pines').onclick = () => {
 document.getElementById('btn-refrescar').onclick = () => {
   marcarConexion(true);
   cargar();
+};
+
+document.getElementById('btn-millas').onclick = () => {
+  geoFallados = {};
+  avisarEnPantalla('Buscando las direcciones y las millas de los pedidos…', 'bien');
+  completarMillas();
 };
 
 // ------------------------------------------------------------- arranque
