@@ -91,6 +91,7 @@
   </div>
   <button onclick="location.href='tablero.html'">TABLERO</button>
   <button onclick="location.href='panel.html'">PANEL DEL DUEÑO</button>
+  <button onclick="location.href='cierre.html'" style="background:#4ade80;color:#06202e;border-color:transparent">CIERRE DEL AÑO</button>
   <button onclick="window.print()">IMPRIMIR</button>
   <div class="estado" id="conexion">conectando…</div>
 </header>
@@ -152,6 +153,32 @@
     <tbody id="tabla-pagos"><tr><td colspan="7" class="vacio">Cargando…</td></tr></tbody>
   </table>
 
+  <h2>Los gastos de la compañía (gasolina, seguro, mantenimiento…)</h2>
+  <div class="rango" style="margin-bottom:10px">
+    <button class="principal" onclick="abrirGasto()">APUNTAR UN GASTO</button>
+    <span id="gastos-total" style="font-weight:900;color:#f87171"></span>
+  </div>
+  <table>
+    <thead>
+      <tr><th>Fecha</th><th>Categoría</th><th>Concepto</th><th>Conductor</th>
+          <th class="num">Importe</th><th>Nota</th><th></th></tr>
+    </thead>
+    <tbody id="tabla-gastos"><tr><td colspan="7" class="vacio">Cargando…</td></tr></tbody>
+  </table>
+
+  <h2>Las facturas a los clientes (lo que nos pagan)</h2>
+  <div class="rango" style="margin-bottom:10px">
+    <button class="principal" onclick="abrirFactura()">HACER UNA FACTURA</button>
+    <span id="facturas-total" style="font-weight:900;color:#4ade80"></span>
+  </div>
+  <table>
+    <thead>
+      <tr><th>Número</th><th>Fecha</th><th>Cliente</th><th>Concepto</th>
+          <th class="num">Monto</th><th>Vence</th><th>Estado</th><th></th></tr>
+    </thead>
+    <tbody id="tabla-facturas"><tr><td colspan="8" class="vacio">Cargando…</td></tr></tbody>
+  </table>
+
   <p class="nota" id="nota-final"></p>
 </main>
 
@@ -205,6 +232,74 @@
     <div class="fila no-imprimir">
       <button class="principal" onclick="window.print()">IMPRIMIR / GUARDAR EN PDF</button>
       <button onclick="cerrarCuenta()">CERRAR</button>
+    </div>
+  </div>
+</div>
+
+<!-- apuntar un gasto -->
+<div class="velo" id="velo-gasto">
+  <div class="caja" style="position:relative">
+    <button class="cerrar" onclick="cerrarGasto()">&times;</button>
+    <h3>Apuntar un gasto</h3>
+    <p>Gasolina, seguro, mantenimiento… Con esto se ve la ganancia de verdad, no solo lo que entra.</p>
+    <label>Categoría</label>
+    <select id="gasto-categoria"></select>
+    <label>Qué fue (concepto)</label>
+    <input id="gasto-concepto" placeholder="Ejemplo: tanque lleno de la troca">
+    <label>Cuánto costó</label>
+    <input id="gasto-importe" type="number" step="0.01" min="0" placeholder="0.00">
+    <label>Fecha</label>
+    <input id="gasto-fecha" type="date">
+    <label>Conductor (si el gasto es de uno)</label>
+    <input id="gasto-conductor" placeholder="Teléfono del conductor (opcional)">
+    <label>Nota (opcional)</label>
+    <input id="gasto-nota" placeholder="Ejemplo: recibo 1234">
+    <div class="fila">
+      <button class="principal" onclick="guardarGasto()">APUNTAR EL GASTO</button>
+      <button onclick="cerrarGasto()">CANCELAR</button>
+    </div>
+    <p class="nota" id="gasto-error" style="color:#f87171"></p>
+  </div>
+</div>
+
+<!-- hacer una factura -->
+<div class="velo" id="velo-factura">
+  <div class="caja" style="position:relative">
+    <button class="cerrar" onclick="cerrarFactura()">&times;</button>
+    <h3>Hacer una factura al cliente</h3>
+    <p>Se numera sola (FAC-año-0000) y queda apuntada. Nada se borra.</p>
+    <label>Cliente</label>
+    <input id="factura-cliente" placeholder="Nombre del cliente o empresa">
+    <label>Teléfono del cliente</label>
+    <input id="factura-telefono" placeholder="904-000-0000">
+    <label>Qué se le cobra</label>
+    <input id="factura-concepto" placeholder="Ejemplo: mudanza de sofa y mesa">
+    <label>Monto</label>
+    <input id="factura-monto" type="number" step="0.01" min="0" placeholder="0.00">
+    <label>Fecha de la factura</label>
+    <input id="factura-fecha" type="date">
+    <label>Vence el (opcional)</label>
+    <input id="factura-vence" type="date">
+    <label>Pedido (código SP-XXXXXX, opcional)</label>
+    <input id="factura-pedido" placeholder="SP-000000">
+    <label>Nota (opcional)</label>
+    <input id="factura-nota" placeholder="Ejemplo: pago a 15 días">
+    <div class="fila">
+      <button class="principal" onclick="guardarFactura()">HACER LA FACTURA</button>
+      <button onclick="cerrarFactura()">CANCELAR</button>
+    </div>
+    <p class="nota" id="factura-error" style="color:#f87171"></p>
+  </div>
+</div>
+
+<!-- ver / imprimir una factura -->
+<div class="velo" id="velo-ver-factura">
+  <div class="caja" style="position:relative">
+    <button class="cerrar no-imprimir" onclick="cerrarVerFactura()">&times;</button>
+    <div id="hoja-factura"></div>
+    <div class="fila no-imprimir">
+      <button class="principal" onclick="window.print()">IMPRIMIR / GUARDAR EN PDF</button>
+      <button onclick="cerrarVerFactura()">CERRAR</button>
     </div>
   </div>
 </div>
@@ -313,6 +408,8 @@ async function cargar(){
   pintarDias();
   pintarViajes();
   pintarPagos();
+  pintarGastos();
+  pintarFacturas();
   document.getElementById('nota-final').textContent = r.aviso || '';
 }
 
@@ -329,13 +426,16 @@ function pintarResumen(){
   const caja = document.getElementById('kpis');
   const tarjeta = (clase, valor, titulo) =>
     '<div class="kpi ' + clase + '"><b>' + valor + '</b><span>' + titulo + '</span></div>';
+  const ganancia = Number(r.ganancia || 0);
   caja.innerHTML =
     tarjeta('', r.viajes || 0, 'VIAJES ENTREGADOS') +
     tarjeta('', (r.millas || 0) + ' mi', 'MILLAS') +
     tarjeta('dinero', dinero(r.facturado), 'FACTURADO (LO QUE PAGAN)') +
     tarjeta('pagar', dinero(r.aPagar), 'A PAGAR A CONDUCTORES') +
-    tarjeta('margen', dinero(r.margen), 'QUEDA PARA LA COMPAÑÍA') +
-    tarjeta('', dinero(r.pagado), 'PAGADO EN ESTE PERIODO');
+    tarjeta('', dinero(r.gastos), 'GASTOS DE LA COMPAÑÍA') +
+    tarjeta(ganancia >= 0 ? 'margen' : 'pagar', dinero(ganancia), 'GANANCIA DE VERDAD') +
+    tarjeta('', dinero(r.pagado), 'PAGADO A CONDUCTORES') +
+    tarjeta('', dinero(r.facturasPorCobrar), 'FACTURAS POR COBRAR');
 }
 
 function pintarConductores(){
@@ -479,6 +579,187 @@ function verCuenta(conductor){
   document.getElementById('velo-cuenta').classList.add('abierto');
 }
 function cerrarCuenta(){ document.getElementById('velo-cuenta').classList.remove('abierto'); }
+
+// ------------------------------------------------------------- GASTOS
+const CATEGORIAS = [
+  ['gasolina', 'Gasolina'], ['seguro', 'Seguro'], ['mantenimiento', 'Mantenimiento'],
+  ['reparacion', 'Reparación'], ['peajes', 'Peajes'], ['lavado', 'Lavado'], ['otro', 'Otro'],
+];
+
+function nombreCategoria(c){
+  const f = CATEGORIAS.find(x => x[0] === c);
+  return f ? f[1] : c;
+}
+
+function pintarGastos(){
+  const caja = document.getElementById('tabla-gastos');
+  const lista = datos.gastos || [];
+  const r = datos.resumen || {};
+  document.getElementById('gastos-total').textContent = 'Total del periodo: ' + dinero(r.gastos);
+  if (!lista.length){ caja.innerHTML = '<tr><td colspan="7" class="vacio">No hay gastos apuntados en este periodo.</td></tr>'; return; }
+  caja.innerHTML = lista.map(g =>
+    '<tr><td>' + esc(g.fecha) + '</td><td>' + esc(nombreCategoria(g.categoria)) + '</td>' +
+    '<td>' + esc(g.concepto) + '</td><td class="cero">' + esc(g.conductor || '') + '</td>' +
+    '<td class="num" style="color:#f87171;font-weight:900">' + dinero(g.importe) + '</td>' +
+    '<td class="cero">' + esc(g.nota) + '</td>' +
+    '<td>' + (g.estado === 'anulado' ? '<span class="chip anu">ANULADO</span>' :
+      '<button class="peligro" onclick="anularGasto(' + g.fila + ')">ANULAR</button>') + '</td></tr>'
+  ).join('');
+}
+
+function abrirGasto(){
+  const sel = document.getElementById('gasto-categoria');
+  if (!sel.innerHTML.trim()){
+    sel.innerHTML = CATEGORIAS.map(c => '<option value="' + c[0] + '">' + c[1] + '</option>').join('');
+  }
+  document.getElementById('gasto-concepto').value = '';
+  document.getElementById('gasto-importe').value = '';
+  document.getElementById('gasto-fecha').value = iso(new Date());
+  document.getElementById('gasto-conductor').value = '';
+  document.getElementById('gasto-nota').value = '';
+  document.getElementById('gasto-error').textContent = '';
+  document.getElementById('velo-gasto').classList.add('abierto');
+}
+function cerrarGasto(){ document.getElementById('velo-gasto').classList.remove('abierto'); }
+
+async function guardarGasto(){
+  const err = document.getElementById('gasto-error');
+  const importe = document.getElementById('gasto-importe').value;
+  if (!(Number(importe) > 0)){ err.textContent = 'Escriba cuánto costó.'; return; }
+  const r = await pedir('registrarGasto', {
+    llave: llave,
+    categoria: document.getElementById('gasto-categoria').value,
+    concepto: document.getElementById('gasto-concepto').value.trim(),
+    importe: importe,
+    fecha: document.getElementById('gasto-fecha').value,
+    conductor: document.getElementById('gasto-conductor').value.trim(),
+    nota: document.getElementById('gasto-nota').value.trim(),
+  });
+  if (!r.ok){ err.textContent = r.error || r.mensaje || 'No se pudo apuntar.'; return; }
+  cerrarGasto();
+  avisoTexto(r.mensaje || 'Gasto apuntado.');
+  cargar();
+}
+
+async function anularGasto(fila){
+  const motivo = prompt('¿Por qué anula este gasto? (queda apuntado, no se borra)', 'me equivoqué');
+  if (motivo === null) return;
+  const r = await pedir('anularGasto', {llave: llave, fila: fila, motivo: motivo});
+  if (!r.ok){ avisoTexto(r.error || r.mensaje || 'No se pudo anular.', true); return; }
+  avisoTexto(r.mensaje || 'Gasto anulado.');
+  cargar();
+}
+
+// ----------------------------------------------------------- FACTURAS
+function pintarFacturas(){
+  const caja = document.getElementById('tabla-facturas');
+  const lista = datos.facturas || [];
+  const r = datos.resumen || {};
+  document.getElementById('facturas-total').textContent =
+    'Emitido ' + dinero(r.facturasEmitidas) + ' · Cobrado ' + dinero(r.facturasCobradas) +
+    ' · Por cobrar ' + dinero(r.facturasPorCobrar);
+  if (!lista.length){ caja.innerHTML = '<tr><td colspan="8" class="vacio">No hay facturas en este periodo.</td></tr>'; return; }
+  caja.innerHTML = lista.map(f =>
+    '<tr><td><b>' + esc(f.numero) + '</b></td><td>' + esc(f.fecha) + '</td>' +
+    '<td>' + esc(f.cliente) + '</td><td class="cero">' + esc(f.concepto) + '</td>' +
+    '<td class="num dinero">' + dinero(f.monto) + '</td>' +
+    '<td class="cero">' + esc(f.vence || '') + '</td>' +
+    '<td><span class="chip ' + (f.estado === 'pagada' ? 'pag' : (f.estado === 'anulada' ? 'anu' : '')) + '"' +
+      (f.estado === 'emitida' ? ' style="color:#facc15;border-color:#facc15"' : '') + '>' +
+      esc(String(f.estado).toUpperCase()) + '</span></td>' +
+    '<td style="white-space:nowrap">' +
+      '<button onclick="verFactura(\'' + esc(f.numero) + '\')">VER</button>' +
+      (f.estado === 'emitida'
+        ? ' <button class="principal" onclick="cobrarFactura(\'' + esc(f.numero) + '\')">COBRAR</button>' +
+          ' <button class="peligro" onclick="anularFactura(\'' + esc(f.numero) + '\')">ANULAR</button>'
+        : '') +
+    '</td></tr>'
+  ).join('');
+}
+
+function abrirFactura(){
+  document.getElementById('factura-cliente').value = '';
+  document.getElementById('factura-telefono').value = '';
+  document.getElementById('factura-concepto').value = '';
+  document.getElementById('factura-monto').value = '';
+  document.getElementById('factura-fecha').value = iso(new Date());
+  document.getElementById('factura-vence').value = '';
+  document.getElementById('factura-pedido').value = '';
+  document.getElementById('factura-nota').value = '';
+  document.getElementById('factura-error').textContent = '';
+  document.getElementById('velo-factura').classList.add('abierto');
+}
+function cerrarFactura(){ document.getElementById('velo-factura').classList.remove('abierto'); }
+
+async function guardarFactura(){
+  const err = document.getElementById('factura-error');
+  const cliente = document.getElementById('factura-cliente').value.trim();
+  const monto = document.getElementById('factura-monto').value;
+  if (!cliente){ err.textContent = 'Falta el cliente.'; return; }
+  if (!(Number(monto) > 0)){ err.textContent = 'Escriba el monto.'; return; }
+  const r = await pedir('crearFactura', {
+    llave: llave, cliente: cliente,
+    telefono: document.getElementById('factura-telefono').value.trim(),
+    concepto: document.getElementById('factura-concepto').value.trim(),
+    monto: monto,
+    fecha: document.getElementById('factura-fecha').value,
+    vence: document.getElementById('factura-vence').value,
+    pedido: document.getElementById('factura-pedido').value.trim(),
+    nota: document.getElementById('factura-nota').value.trim(),
+  });
+  if (!r.ok){ err.textContent = r.error || r.mensaje || 'No se pudo crear.'; return; }
+  cerrarFactura();
+  avisoTexto(r.mensaje || 'Factura creada.');
+  await cargar();
+  verFactura(r.numero);
+}
+
+async function cobrarFactura(numero){
+  if (!confirm('¿Ya le pagaron la factura ' + numero + '?')) return;
+  const r = await pedir('pagarFactura', {llave: llave, numero: numero});
+  if (!r.ok){ avisoTexto(r.error || r.mensaje || 'No se pudo marcar.', true); return; }
+  avisoTexto(r.mensaje || 'Factura cobrada.');
+  cargar();
+}
+
+async function anularFactura(numero){
+  const motivo = prompt('¿Por qué anula la factura ' + numero + '? (queda apuntada, no se borra)', 'me equivoqué');
+  if (motivo === null) return;
+  const r = await pedir('anularFactura', {llave: llave, numero: numero, motivo: motivo});
+  if (!r.ok){ avisoTexto(r.error || r.mensaje || 'No se pudo anular.', true); return; }
+  avisoTexto(r.mensaje || 'Factura anulada.');
+  cargar();
+}
+
+function verFactura(numero){
+  const f = (datos.facturas || []).find(x => x.numero === numero);
+  if (!f) return;
+  const html = '<div class="hoja-cuenta">' +
+    '<div style="display:flex;justify-content:space-between;align-items:flex-start">' +
+      '<div><h4>Sinclair Pickup Trucks</h4>' +
+      '<div class="sub">2719 Leon Rd, Jacksonville, FL 32246<br>' +
+      'WhatsApp 904-667-2123 · Llamadas 904-437-0643 / 904-531-6171</div></div>' +
+      '<div style="text-align:right"><div style="font-size:15px;font-weight:900">FACTURA</div>' +
+      '<div style="font-size:14px">' + esc(f.numero) + '</div>' +
+      '<div class="sub">' + esc(f.fecha) + (f.vence ? ' · vence ' + esc(f.vence) : '') + '</div></div>' +
+    '</div>' +
+    '<div style="margin-top:16px"><b>Cliente:</b> ' + esc(f.cliente) +
+      (f.telefono ? ' · ' + esc(f.telefono) : '') + '</div>' +
+    (f.pedido ? '<div class="sub">Pedido: ' + esc(f.pedido) + '</div>' : '') +
+    '<table style="margin-top:12px"><thead><tr><th>Concepto</th><th style="text-align:right">Monto</th></tr></thead>' +
+    '<tbody><tr><td>' + esc(f.concepto || 'Servicio de transporte') + '</td>' +
+    '<td style="text-align:right">' + dinero(f.monto) + '</td></tr></tbody></table>' +
+    '<div class="total">TOTAL: ' + dinero(f.monto) + '</div>' +
+    '<div class="sub">Estado: ' + esc(String(f.estado).toUpperCase()) +
+      (f.estado === 'pagada' && f.hora_cobro ? ' el ' + esc(String(f.hora_cobro).slice(0, 10)) : '') +
+      (f.nota ? ' · ' + esc(f.nota) : '') + '</div>' +
+    '<div class="sub" style="margin-top:14px">Formas de pago: Zelle o efectivo. ' +
+      'Pregunte por WhatsApp al 904-667-2123.<br>Gracias por confiar en Sinclair Pickup Trucks.</div>' +
+    '</div>';
+  document.getElementById('hoja-factura').innerHTML = html;
+  document.getElementById('velo-ver-factura').classList.add('abierto');
+}
+function cerrarVerFactura(){ document.getElementById('velo-ver-factura').classList.remove('abierto'); }
 
 // -------------------------------------------------------------------- CSV
 function exportar(cual){

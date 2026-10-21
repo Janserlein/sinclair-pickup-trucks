@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cierre del Año | Sinclair Pickup Trucks</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='18' fill='%230c2340'/><text x='50' y='68' font-size='52' text-anchor='middle' fill='%23dbe7f3' font-family='Georgia'>C</text></svg>">
+<style>
+  :root{ --fondo:#070c16; --panel:#0b0f19; --panel2:#111827; --borde:rgba(255,255,255,.09);
+         --azul:#38bdf8; --verde:#4ade80; --rojo:#f87171; --amarillo:#facc15; --griss:#94a3b8; --humo:#64748b; }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--fondo);color:#f8fafc;font-family:'Segoe UI',system-ui,sans-serif}
+  header{display:flex;align-items:center;gap:12px;padding:10px 16px;background:var(--panel);border-bottom:1px solid var(--borde);flex-wrap:wrap}
+  .marca{display:flex;align-items:center;gap:10px;font-weight:800;letter-spacing:2px;font-size:15px}
+  .marca .circulo{width:30px;height:30px;border-radius:50%;background:#0c2340;display:grid;place-items:center;color:#dbe7f3;font-family:Georgia,serif;font-size:16px;border:1px solid #28527a}
+  .marca small{display:block;font-size:8px;letter-spacing:1.6px;color:var(--azul);font-weight:700}
+  button{font-family:inherit;cursor:pointer;border-radius:9px;border:1px solid var(--borde);background:var(--panel2);
+         color:#f8fafc;font-size:11.5px;font-weight:800;padding:7px 11px}
+  button:hover{border-color:var(--azul)}
+  button.principal{background:var(--azul);color:#06202e;border-color:transparent}
+  .estado{padding:4px 10px;border-radius:20px;font-size:11px;font-weight:800;border:1px solid var(--borde);margin-left:auto}
+  .estado.ok{color:var(--verde);border-color:var(--verde)}
+  .estado.malo{color:var(--rojo);border-color:var(--rojo)}
+  main{padding:16px;max-width:1100px;margin:0 auto}
+  .barra{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:14px}
+  .barra select{background:var(--panel2);border:1px solid var(--borde);color:#f8fafc;border-radius:8px;
+                padding:8px 10px;font-family:inherit;font-size:13px;font-weight:700}
+
+  /* El libro: hoja blanca para imprimir */
+  .libro{background:#fff;color:#111;padding:30px 28px;border-radius:12px}
+  .libro h1{font-size:22px;margin:0 0 2px;letter-spacing:1px}
+  .libro .empresa{font-size:12px;color:#555;margin-bottom:18px}
+  .libro h2{font-size:13px;letter-spacing:1.2px;text-transform:uppercase;color:#333;
+            margin:24px 0 8px;border-bottom:2px solid #111;padding-bottom:4px}
+  .libro table{width:100%;border-collapse:collapse;background:#fff;border:1px solid #ccc}
+  .libro th{background:#eee;color:#111;font-size:11px;letter-spacing:.6px;text-transform:uppercase;
+            padding:7px 8px;text-align:left;border-bottom:1px solid #bbb}
+  .libro td{padding:6px 8px;border-bottom:1px solid #e2e2e2;font-size:12.5px;color:#111}
+  .libro td.num,.libro th.num{text-align:right;font-variant-numeric:tabular-nums}
+  .libro tr.totales td{font-weight:900;background:#f4f4f4;border-top:2px solid #111}
+  .libro .neg{color:#b00020}
+  .libro .pos{color:#0a7d33}
+  .libro .resumen{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-top:10px}
+  .libro .caja{border:1px solid #ccc;border-radius:8px;padding:12px}
+  .libro .caja b{display:block;font-size:19px}
+  .libro .caja span{font-size:10.5px;letter-spacing:.8px;color:#555;font-weight:800;text-transform:uppercase}
+  .libro .firmas{display:flex;gap:40px;margin-top:44px}
+  .libro .firma{flex:1;border-top:1px solid #333;padding-top:6px;font-size:11.5px;color:#444;text-align:center}
+  .libro .pie{margin-top:22px;font-size:10.5px;color:#666;line-height:1.6}
+
+  .velo{position:fixed;inset:0;background:rgba(3,6,12,.85);display:none;place-items:center;z-index:9000;padding:18px}
+  .velo.abierto{display:grid}
+  .caja-llave{background:var(--panel);border:1px solid #28527a;border-radius:14px;padding:18px;width:min(420px,94vw);color:#f8fafc}
+  .caja-llave input{width:100%;padding:10px 12px;border-radius:9px;border:1px solid var(--borde);
+                    background:var(--panel2);color:#f8fafc;font-family:inherit;font-size:15px}
+  .caja-llave p{color:var(--griss);font-size:12.5px}
+
+  @media print{
+    @page{margin:14mm}
+    header,.barra,.velo{display:none!important}
+    body{background:#fff}
+    main{padding:0;max-width:none}
+    .libro{border-radius:0;padding:0}
+  }
+</style>
+  <link rel="canonical" href="https://sinclairpickup.com/cierre.html">
+</head>
+<body>
+
+<header>
+  <div class="marca">
+    <div class="circulo">C</div>
+    <div>Cierre<small>SINCLAIR PICKUP TRUCKS</small></div>
+  </div>
+  <button onclick="location.href='libro.html'">LIBRO DE CUENTAS</button>
+  <button onclick="location.href='tablero.html'">TABLERO</button>
+  <button class="principal" onclick="window.print()">IMPRIMIR / GUARDAR EN PDF</button>
+  <div class="estado" id="conexion">conectando…</div>
+</header>
+
+<main>
+  <div class="barra">
+    <span style="color:#94a3b8;font-size:12.5px;font-weight:800">AÑO:</span>
+    <select id="ano" onchange="cargar()"></select>
+    <span style="color:#64748b;font-size:11.5px">Este cierre no borra nada: es una foto del año para imprimir y repartir.</span>
+  </div>
+
+  <div class="libro" id="libro">
+    <h1>SINCLAIR PICKUP TRUCKS</h1>
+    <div class="empresa">2719 Leon Rd, Jacksonville, FL 32246 · WhatsApp 904-667-2123 ·
+      Llamadas 904-437-0643 (inglés) / 904-531-6171 (español)</div>
+    <div id="contenido"><p style="color:#555">Cargando…</p></div>
+  </div>
+</main>
+
+<div class="velo" id="velo-llave">
+  <div class="caja-llave">
+    <h3 style="margin:0 0 8px">Cierre del año</h3>
+    <p>Escriba la llave del dueño (la misma del tablero y del libro).</p>
+    <input id="llave" type="password" placeholder="Llave">
+    <div style="margin-top:12px"><button class="principal" onclick="entrar()">ENTRAR</button></div>
+    <p id="error-llave" style="color:#f87171"></p>
+  </div>
+</div>
+
+<script>
+// ============================================================================
+//  CIERRE DEL AÑO · Sinclair Pickup Trucks
+//  Lo que se gana de verdad en el año, mes a mes, para imprimir y repartir.
+// ============================================================================
+const CUADERNO = 'https://script.google.com/macros/s/AKfycbxr7Rr1AnNFVafLy-pk_5nHa-6iZPb5bCYgEpHTBdlKaKHLaHwLXWWH1bI82y3RHPyG/exec';
+let llave = localStorage.getItem('sinclair_llave') || '';
+const MESES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+
+function esc(t){
+  return (t===null||t===undefined?'':String(t)).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+}
+function dinero(v){
+  const n = Number(v || 0);
+  const signo = n < 0 ? '-' : '';
+  return signo + '$' + Math.abs(n).toFixed(2);
+}
+function clase(v){ return Number(v) < 0 ? 'neg' : 'pos'; }
+
+async function pedir(accion, datos){
+  const cuerpo = JSON.stringify(Object.assign({accion}, datos||{}));
+  const corte = new AbortController();
+  const reloj = setTimeout(() => corte.abort(), 60000);
+  try {
+    const r = await fetch(CUADERNO, {method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'},
+                                   body: cuerpo, signal: corte.signal});
+    const texto = await r.text();
+    try { return JSON.parse(texto); } catch(e){ return {ok:false, error:'respuesta rara'}; }
+  } catch(e){
+    return {ok:false, error:'El cuaderno tardó demasiado o no hay internet.'};
+  } finally { clearTimeout(reloj); }
+}
+
+function marcar(ok){
+  const e = document.getElementById('conexion');
+  e.textContent = ok === null ? 'leyendo…' : (ok ? 'en vivo' : 'sin conexión');
+  e.className = 'estado ' + (ok ? 'ok' : 'malo');
+}
+
+/* El selector de años: desde 2024 hasta este año. */
+function llenarAnos(){
+  const sel = document.getElementById('ano');
+  const hoy = new Date().getFullYear();
+  let html = '';
+  for (let a = hoy; a >= 2024; a--) html += '<option value="' + a + '">' + a + '</option>';
+  sel.innerHTML = html;
+  sel.value = String(hoy);
+}
+
+async function cargar(){
+  if (!llave) return;
+  marcar(null);
+  const ano = document.getElementById('ano').value;
+  const r = await pedir('cierreAno', {llave: llave, ano: ano});
+  if (!r.ok){
+    marcar(false);
+    if ((r.error || r.mensaje || '').toLowerCase().includes('llave')){
+      document.getElementById('velo-llave').classList.add('abierto');
+      document.getElementById('error-llave').textContent = 'Esa llave no es.';
+      return;
+    }
+    document.getElementById('contenido').innerHTML =
+      '<p style="color:#b00020">No se pudo leer el cierre: ' + esc(r.error || r.mensaje || '') + '</p>';
+    return;
+  }
+  marcar(true);
+  pintar(r);
+}
+
+function pintar(r){
+  const t = r.totales || {};
+  let html = '';
+
+  /* 1. Los números del año */
+  html += '<h2>El año ' + esc(r.ano) + ' en números</h2>' +
+    '<div class="resumen">' +
+      caja(dinero(t.facturado), 'FACTURADO (LO QUE NOS PAGARON)') +
+      caja(dinero(t.conductores), 'PAGADO A CONDUCTORES') +
+      caja(dinero(t.gastos), 'GASTOS DE LA COMPAÑÍA') +
+      caja('<span class="' + clase(t.ganancia) + '">' + dinero(t.ganancia) + '</span>', 'GANANCIA DE VERDAD') +
+      caja((t.viajes || 0) + '', 'VIAJES ENTREGADOS') +
+      caja((t.millas || 0) + ' mi', 'MILLAS RECORRIDAS') +
+      caja(dinero(t.facturasEmitidas), 'FACTURAS EMITIDAS') +
+      caja(dinero(t.facturasPorCobrar), 'FACTURAS POR COBRAR') +
+    '</div>';
+
+  /* 2. Mes a mes */
+  html += '<h2>Mes a mes</h2><table><thead><tr>' +
+    '<th>Mes</th><th class="num">Viajes</th><th class="num">Millas</th><th class="num">Facturado</th>' +
+    '<th class="num">Conductores</th><th class="num">Gastos</th><th class="num">Ganancia</th>' +
+    '</tr></thead><tbody>';
+  (r.meses || []).forEach((m) => {
+    const i = Number(m.mes) - 1;
+    html += '<tr><td>' + MESES[i] + '</td>' +
+      '<td class="num">' + (m.viajes || 0) + '</td>' +
+      '<td class="num">' + (m.millas || 0) + '</td>' +
+      '<td class="num">' + dinero(m.facturado) + '</td>' +
+      '<td class="num">' + dinero(m.conductores) + '</td>' +
+      '<td class="num">' + dinero(m.gastos) + '</td>' +
+      '<td class="num ' + clase(m.ganancia) + '">' + dinero(m.ganancia) + '</td></tr>';
+  });
+  html += '<tr class="totales"><td>TOTAL DEL AÑO</td>' +
+    '<td class="num">' + (t.viajes || 0) + '</td>' +
+    '<td class="num">' + (t.millas || 0) + '</td>' +
+    '<td class="num">' + dinero(t.facturado) + '</td>' +
+    '<td class="num">' + dinero(t.conductores) + '</td>' +
+    '<td class="num">' + dinero(t.gastos) + '</td>' +
+    '<td class="num ' + clase(t.ganancia) + '">' + dinero(t.ganancia) + '</td></tr>' +
+    '</tbody></table>';
+
+  /* 3. Por conductor */
+  html += '<h2>Lo que hizo cada conductor</h2><table><thead><tr>' +
+    '<th>Conductor</th><th>Teléfono</th><th class="num">Viajes</th><th class="num">Millas</th>' +
+    '<th class="num">Le corresponde</th></tr></thead><tbody>';
+  if (!(r.porConductor || []).length){
+    html += '<tr><td colspan="5">Sin viajes entregados en el año.</td></tr>';
+  }
+  (r.porConductor || []).forEach((c) => {
+    html += '<tr><td>' + esc(c.nombre) + '</td><td>' + esc(c.conductor) + '</td>' +
+      '<td class="num">' + c.viajes + '</td><td class="num">' + c.millas + '</td>' +
+      '<td class="num">' + dinero(c.ganado) + '</td></tr>';
+  });
+  html += '</tbody></table>';
+
+  /* 4. Gastos por categoría */
+  html += '<h2>En qué se fue el dinero</h2><table><thead><tr>' +
+    '<th>Categoría</th><th class="num">Total del año</th></tr></thead><tbody>';
+  if (!(r.porCategoriaGasto || []).length){
+    html += '<tr><td colspan="2">Sin gastos apuntados en el año.</td></tr>';
+  }
+  (r.porCategoriaGasto || []).forEach((c) => {
+    html += '<tr><td>' + esc(c.categoria) + '</td><td class="num">' + dinero(c.total) + '</td></tr>';
+  });
+  html += '</tbody></table>';
+
+  /* 5. Cómo se cierra el año */
+  html += '<h2>Cómo queda el año</h2><table><tbody>' +
+    fila('Lo que nos pagaron los clientes', dinero(t.facturado)) +
+    fila('Menos: lo que se les pagó a los conductores', '− ' + dinero(t.conductores)) +
+    fila('Menos: gastos de la compañía', '− ' + dinero(t.gastos)) +
+    '<tr class="totales"><td>GANANCIA DE LA COMPAÑÍA EN EL AÑO</td>' +
+    '<td class="num ' + clase(t.ganancia) + '">' + dinero(t.ganancia) + '</td></tr>' +
+    '</tbody></table>';
+
+  html += '<div class="firmas">' +
+    '<div class="firma">El dueño</div>' +
+    '<div class="firma">Socio / conductor</div>' +
+    '</div>' +
+    '<div class="pie">Cierre generado el ' + new Date().toLocaleDateString('es-US') +
+    ' desde el libro de cuentas de Sinclair Pickup Trucks. Los viajes se apuntan el día que se entregan; ' +
+    'los gastos y los pagos van aparte. Nada se borra: todo queda para el registro.</div>';
+
+  document.getElementById('contenido').innerHTML = html;
+}
+
+function caja(valor, titulo){ return '<div class="caja"><b>' + valor + '</b><span>' + titulo + '</span></div>'; }
+function fila(que, cuanto){ return '<tr><td>' + que + '</td><td class="num">' + cuanto + '</td></tr>'; }
+
+function entrar(){
+  const v = document.getElementById('llave').value.trim();
+  if (!v) return;
+  llave = v;
+  localStorage.setItem('sinclair_llave', llave);
+  document.getElementById('velo-llave').classList.remove('abierto');
+  cargar();
+}
+document.getElementById('llave').addEventListener('keydown', e => { if (e.key === 'Enter') entrar(); });
+
+llenarAnos();
+if (!llave) document.getElementById('velo-llave').classList.add('abierto');
+else cargar();
+</script>
+</body>
+</html>
