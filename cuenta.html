@@ -114,6 +114,22 @@
                     </div>
                 </div>
 
+                <!-- Cómo va a pagar (pedido del dueño, 21-oct-2026) -->
+                <div class="form-group">
+                    <label for="pago-metodo">¿Cómo va a pagar sus servicios? *</label>
+                    <select id="pago-metodo" required
+                      style="width:100%;padding:12px 14px;border-radius:10px;border:1px solid rgba(255,255,255,.15);
+                             background:#111827;color:#f8fafc;font-family:inherit;font-size:15px">
+                        <option value="">Elija una forma de pago</option>
+                        <option value="zelle">Zelle</option>
+                        <option value="banco">Transferencia / cuenta bancaria</option>
+                        <option value="tarjeta">Tarjeta de banco</option>
+                        <option value="efectivo">Efectivo</option>
+                        <option value="factura">Por factura</option>
+                    </select>
+                    <p class="form-aviso" style="margin-top:6px">Queda guardado y lo puede cambiar cuando quiera desde su cuenta.</p>
+                </div>
+
                 <div id="campos-conductor" class="oculto">
                     <div class="form-row">
                         <div class="form-group">
@@ -401,7 +417,8 @@ function crearCuenta(ev) {
     llamarCuaderno({accion: 'crear', papel: nueva.papel, empresa: nueva.empresa, nombre: nueva.nombre,
       apellido: nueva.apellido, telefono: nueva.telefono, correo: nueva.correo, clave: clave,
       acuse_ubicacion: true, vehiculo: nueva.vehiculo, licencia: nueva.licencia,
-      zona: nueva.zona, seguro: nueva.seguro}, function (r) {
+      zona: nueva.zona, seguro: nueva.seguro,
+      pago_metodo: limpio((document.getElementById('pago-metodo') || {}).value || '')}, function (r) {
         if (r && r.ok === false) {
           salida.innerHTML += '<div class="linea-ojo">El cuaderno de la empresa dice: ' + escapar(r.mensaje || '') + '</div>';
         } else {
