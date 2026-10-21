@@ -55,6 +55,7 @@
   .vacio{color:var(--humo);font-size:12px;text-align:center;padding:22px 8px;line-height:1.6}
 
   .aviso-sin{color:var(--amarillo);font-size:10.5px;font-weight:800;margin-top:6px}
+  .recogida{color:var(--amarillo);font-size:11.5px;font-weight:800;margin-top:7px}
 
   .velo{position:fixed;inset:0;background:rgba(3,6,12,.78);display:none;place-items:center;z-index:9000;padding:20px}
   .velo.abierto{display:grid}
@@ -251,6 +252,22 @@ function minutosDesde(iso){
   const t = Date.parse(iso);
   if (isNaN(t)) return 99999;
   return (Date.now() - t) / 60000;
+}
+
+/* La fecha de recogida en palabras cortas: HOY 14:00 · MAÑANA 10:00 · 24/10 09:00 */
+function cuandoDe(iso){
+  if (!iso) return '';
+  const d = new Date(iso);
+  if (isNaN(d.getTime())) return String(iso).slice(0, 10);
+  const hoy = new Date();
+  const dia = (x) => new Date(x.getFullYear(), x.getMonth(), x.getDate()).getTime();
+  const dias = Math.round((dia(d) - dia(hoy)) / 86400000);
+  const hora = d.toLocaleTimeString('es-US', {hour: '2-digit', minute: '2-digit'});
+  if (dias === 0) return 'HOY ' + hora;
+  if (dias === 1) return 'MAÑANA ' + hora;
+  if (dias === -1) return 'AYER ' + hora;
+  const f = d.toLocaleDateString('es-US', {day: '2-digit', month: '2-digit'});
+  return f + ' ' + hora;
 }
 
 function hace(iso){
@@ -467,6 +484,9 @@ function pintarOrdenes(){
       '<div class="texto"><b>De:</b> ' + esc(o.desde) + '</div>' +
       '<div class="texto"><b>A:</b> ' + esc(o.hasta) + '</div>' +
       '<div class="texto"><b>Conductor:</b> ' + (o.conductor ? esc(nombreChofer) : '<span style="color:#f87171">sin asignar</span>') + '</div>' +
+      (o.fecha_recogida ? '<div class="recogida">Recoger: ' + esc(cuandoDe(o.fecha_recogida)) +
+        (o.precio ? ' · Se paga ' + esc(o.precio) : '') +
+        (o.millas ? ' · ' + esc(o.millas) + ' millas' : '') + '</div>' : '') +
       '<div class="fino">Entrega: ' + esc(ENTREGAS[o.entrega] || o.entrega) + ' · Creada ' + esc(hace(o.hora_creado)) +
       (o.ultima_posicion ? ' · Posición ' + esc(hace(o.ultima_posicion.hora)) : '') + '</div>' +
       (sinSenal ? '<div class="aviso-sin">⚠ SIN SEÑAL hace ' + Math.round(minutosDesde(o.ultima_posicion.hora)) + ' min</div>' : '') +
