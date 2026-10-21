@@ -56,6 +56,10 @@
 
   .aviso-sin{color:var(--amarillo);font-size:10.5px;font-weight:800;margin-top:6px}
   .recogida{color:var(--amarillo);font-size:11.5px;font-weight:800;margin-top:7px}
+  .filtro-dias{display:flex;gap:6px;margin:-4px 0 9px}
+  .filtro-dias .dia{flex:1;padding:7px 4px;border-radius:9px;border:1px solid var(--borde);background:var(--panel2);
+                    color:var(--gris);font-family:inherit;font-size:10.5px;font-weight:900;letter-spacing:.6px;cursor:pointer}
+  .filtro-dias .dia.elegido{border-color:var(--azul);background:#0c2340;color:var(--azul)}
 
   .velo{position:fixed;inset:0;background:rgba(3,6,12,.78);display:none;place-items:center;z-index:9000;padding:20px}
   .velo.abierto{display:grid}
@@ -105,6 +109,11 @@
     <div id="aviso-pantalla" style="display:none;margin:0 0 10px;padding:9px 11px;border-radius:10px;
          background:#2a1a08;border:1px solid #7a4a12;color:#fbbf24;font-size:11.5px;font-weight:700;line-height:1.5"></div>
     <div class="titulo-seccion">ÓRDENES ABIERTAS</div>
+    <div class="filtro-dias">
+      <button class="dia" id="f-todas" onclick="filtrarDia('todas')">TODAS</button>
+      <button class="dia" id="f-hoy" onclick="filtrarDia('hoy')">HOY</button>
+      <button class="dia" id="f-manana" onclick="filtrarDia('manana')">MAÑANA</button>
+    </div>
     <div style="font-size:10px;color:#64748b;margin:-4px 2px 8px">La etiqueta de color es solo informativa (no se pica). Los botones son los de abajo de cada orden.</div>
     <div id="ordenes"><div class="vacio">Cargando…</div></div>
     <div class="titulo-seccion">CONDUCTORES</div>
@@ -463,13 +472,44 @@ function pintarMapa(){
 }
 
 // --------------------------------------------------------------- la lista
+// Filtro por día: el dueño elige ver todas, las de hoy o las de mañana.
+let filtroDia = 'todas';
+
+function filtrarDia(cual){
+  filtroDia = (cual === 'hoy' || cual === 'manana') ? cual : 'todas';
+  ['todas', 'hoy', 'manana'].forEach((d) => {
+    const b = document.getElementById('f-' + d);
+    if (b) b.className = 'dia' + (filtroDia === d ? ' elegido' : '');
+  });
+  pintarOrdenes();
+}
+
+/* ¿Para qué día es este pedido? 'hoy', 'manana' u 'otro' (o '' si no tiene fecha). */
+function diaDePedido(o){
+  if (!o.fecha_recogida) return '';
+  const d = new Date(o.fecha_recogida);
+  if (isNaN(d.getTime())) return '';
+  const hoy = new Date();
+  const dia = (x) => new Date(x.getFullYear(), x.getMonth(), x.getDate()).getTime();
+  const dias = Math.round((dia(d) - dia(hoy)) / 86400000);
+  if (dias === 0) return 'hoy';
+  if (dias === 1) return 'manana';
+  return 'otro';
+}
+
 function pintarOrdenes(){
   const caja = document.getElementById('ordenes');
-  if (!ordenes.length){
-    caja.innerHTML = '<div class="vacio">No hay órdenes abiertas.<br>Cuando un cliente pida por la app, aparece aquí.</div>';
+  let visibles = ordenes;
+  if (filtroDia !== 'todas') {
+    visibles = ordenes.filter((o) => diaDePedido(o) === filtroDia);
+  }
+  if (!visibles.length){
+    caja.innerHTML = '<div class="vacio">' +
+      (ordenes.length ? 'No hay órdenes para ' + (filtroDia === 'hoy' ? 'hoy' : 'mañana') + '.'
+                      : 'No hay órdenes abiertas.<br>Cuando un cliente pida por la app, aparece aquí.') + '</div>';
     return;
   }
-  caja.innerHTML = ordenes.map(o => {
+  caja.innerHTML = visibles.map(o => {
     const color = COLORES[o.estado] || '#94a3b8';
     const sinSenal = o.ultima_posicion && minutosDesde(o.ultima_posicion.hora) > SIN_SENAL_MIN;
     const nombreChofer = nombreDeConductor(o.conductor);
@@ -679,6 +719,7 @@ function reloj(){
 setInterval(reloj, 1000); reloj();
 
 prepararMapa();
+filtrarDia('todas');
 
 if (!llave) mostrarLlave();
 else cargar();
