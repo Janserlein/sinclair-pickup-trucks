@@ -70,6 +70,18 @@
                 <div class="form-group">
                     <label for="p-cuando">¿Para cuándo?</label>
                     <input id="p-cuando" type="text" placeholder="Hoy, mañana, el viernes...">
+                    <label>Día de recogida</label>
+                    <div style="display:flex;gap:8px;margin-top:6px">
+                      <button type="button" id="dia-hoy" onclick="elegirDiaWeb('hoy')"
+                        style="flex:1;padding:11px;border-radius:11px;border:1px solid #28527a;background:#0c2340;
+                        color:#38bdf8;font-family:inherit;font-weight:800;cursor:pointer">HOY</button>
+                      <button type="button" id="dia-manana" onclick="elegirDiaWeb('manana')"
+                        style="flex:1;padding:11px;border-radius:11px;border:1px solid #28527a;background:#111827;
+                        color:#94a3b8;font-family:inherit;font-weight:800;cursor:pointer">MAÑANA</button>
+                    </div>
+                    <label for="p-hora">Hora de recogida</label>
+                    <input id="p-hora" type="time" value="09:00">
+                    <p class="fino" id="nota-dia-web"></p>
                 </div>
             </div>
             <div class="form-row">
@@ -189,6 +201,39 @@ function estadoEtiqueta(e) {
   return '<span class="etiqueta e-no">' + escapar(e) + '</span>';
 }
 
+/* ---------- día y hora de recogida (20-oct-2026) ---------- */
+var diaWeb = 'hoy';
+
+function elegirDiaWeb(cual) {
+  diaWeb = (cual === 'manana') ? 'manana' : 'hoy';
+  var a = document.getElementById('dia-hoy');
+  var b = document.getElementById('dia-manana');
+  if (a) { a.style.background = diaWeb === 'hoy' ? '#0c2340' : '#111827'; a.style.color = diaWeb === 'hoy' ? '#38bdf8' : '#94a3b8'; }
+  if (b) { b.style.background = diaWeb === 'manana' ? '#0c2340' : '#111827'; b.style.color = diaWeb === 'manana' ? '#38bdf8' : '#94a3b8'; }
+  pintarNotaDiaWeb();
+}
+
+function pintarNotaDiaWeb() {
+  var nota = document.getElementById('nota-dia-web');
+  var hora = (document.getElementById('p-hora') || {}).value || '09:00';
+  if (nota) {
+    nota.textContent = 'Se recoge ' + (diaWeb === 'manana' ? 'mañana' : 'hoy') + ' a las ' + hora +
+      '. El conductor lo ve en su agenda.';
+  }
+}
+
+function fechaRecogidaWeb() {
+  var d = new Date();
+  if (diaWeb === 'manana') d.setDate(d.getDate() + 1);
+  var dos = function (n) { return (n < 10 ? '0' + n : '' + n); };
+  var partes = String((document.getElementById('p-hora') || {}).value || '09:00').split(':');
+  var hh = Number(partes[0]);
+  var mm = Number(partes[1] || 0);
+  if (isNaN(hh) || hh < 0 || hh > 23) return '';
+  return d.getFullYear() + '-' + dos(d.getMonth() + 1) + '-' + dos(d.getDate()) +
+    'T' + dos(hh) + ':' + dos(isNaN(mm) ? 0 : mm) + ':00';
+}
+
 /* ---------- CLIENTE: pedir y ver sus pedidos ---------- */
 function pedirServicio(ev) {
   ev.preventDefault();
@@ -197,6 +242,8 @@ function pedirServicio(ev) {
   var hasta = document.getElementById('p-hasta').value.trim();
   var cuando = document.getElementById('p-cuando').value.trim();
   var nota = document.getElementById('p-nota').value.trim();
+  var horaEscrita = (document.getElementById('p-hora') || {}).value || '09:00';
+  if (!cuando) cuando = (diaWeb === 'manana' ? 'Mañana' : 'Hoy') + ' a las ' + horaEscrita;
   var salida = document.getElementById('resultado-pedido');
   if (!que || !desde || !hasta) {
     salida.innerHTML = '<div class="aviso ojo">Faltan datos: qué mover, desde dónde y hacia dónde.</div>';
@@ -209,7 +256,8 @@ function pedirServicio(ev) {
   todos.push(pedido);
   guardar(LLAVE_PEDIDOS, todos);
   llamar({accion: 'pedido', telefono: pedido.telefono, nombre: pedido.nombre, que: que, desde: desde,
-          hasta: hasta, cuando: cuando, nota: nota, codigo: pedido.codigo});
+          hasta: hasta, cuando: cuando, nota: nota, codigo: pedido.codigo,
+          fecha_recogida: fechaRecogidaWeb(), entrega: 'puerta'});
   salida.innerHTML = '<div class="aviso ok"><b>Pedido recibido.</b> Tu código es ' +
     '<span class="codigo">' + pedido.codigo + '</span><br>' +
     'Guárdalo: con él puedes mirar cómo va en <a href="cuenta.html">Seguir mi trabajo</a>. ' +
@@ -310,6 +358,13 @@ function salir() {
   localStorage.removeItem(LLAVE_SESION);
   location.href = 'cuenta.html';
 }
+
+/* Arranque del día de recogida (20-oct-2026) */
+try {
+  elegirDiaWeb('hoy');
+  var _hora = document.getElementById('p-hora');
+  if (_hora) { _hora.addEventListener('change', pintarNotaDiaWeb); _hora.addEventListener('input', pintarNotaDiaWeb); }
+} catch (e) {}
 </script>
 
 <!-- LINEA DE CONTACTO (puesta 19-oct-2026 por orden del dueno) -->
