@@ -58,6 +58,10 @@
   .opcion.activa{border-color:var(--azul);background:rgba(56,189,248,.10);color:var(--azul)}
 
   .fotos{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+  .fila-dia{display:flex;gap:8px;margin-top:6px}
+  .dia{flex:1;padding:11px 8px;border-radius:11px;border:1px solid var(--borde);background:#111827;
+       color:#94a3b8;font-family:inherit;font-size:13px;font-weight:800;letter-spacing:.6px;cursor:pointer}
+  .dia.elegido{border-color:#38bdf8;background:#0c2340;color:#38bdf8}
   .fotos img{width:86px;height:86px;border-radius:11px;object-fit:cover;border:1px solid var(--borde)}
   .caja-foto{width:86px;height:86px;border-radius:11px;border:1.5px dashed var(--azul);display:grid;
     place-items:center;color:var(--azul);font-size:12px;font-weight:800;text-align:center;padding:6px;cursor:pointer}
@@ -120,6 +124,14 @@
       <input id="hasta" placeholder="Dirección de entrega">
       <label>¿Para cuándo? (opcional)</label>
       <input id="cuando" placeholder="Hoy en la tarde, mañana a las 10…">
+      <label>Día de recogida</label>
+      <div class="fila-dia">
+        <button type="button" class="dia" id="dia-hoy" onclick="elegirDia('hoy')">HOY</button>
+        <button type="button" class="dia" id="dia-manana" onclick="elegirDia('manana')">MAÑANA</button>
+      </div>
+      <label>Hora de recogida</label>
+      <input id="hora" type="time" value="09:00">
+      <p class="fino" id="nota-dia"></p>
       <label>Forma de entrega</label>
       <div id="entregas"></div>
       <p class="fino" id="nota-entrega"></p>
@@ -259,6 +271,15 @@ function pintarEntregas(){
 }
 function elegirEntrega(k){ entrega = k; pintarEntregas(); }
 
+/* Al abrir: el día de recogida empieza en HOY y la nota se va actualizando. */
+document.addEventListener('DOMContentLoaded', function(){
+  try {
+    elegirDia('hoy');
+    const h = document.getElementById('hora');
+    if (h) { h.addEventListener('change', pintarNotaDia); h.addEventListener('input', pintarNotaDia); }
+  } catch (e) {}
+});
+
 function leerFoto(file, maxLado, calidad){
   return new Promise((ok, malo) => {
     const fr = new FileReader();
@@ -313,6 +334,40 @@ function pintarFotos(){
 }
 function quitarFoto(i){ fotosCliente.splice(i,1); pintarFotos(); }
 
+/* ---------- día y hora de recogida (20-oct-2026: se puede pedir hoy para mañana) ---------- */
+let diaRecogida = 'hoy';
+
+function elegirDia(cual){
+  diaRecogida = (cual === 'manana') ? 'manana' : 'hoy';
+  const a = document.getElementById('dia-hoy');
+  const b = document.getElementById('dia-manana');
+  if (a) a.className = 'dia' + (diaRecogida === 'hoy' ? ' elegido' : '');
+  if (b) b.className = 'dia' + (diaRecogida === 'manana' ? ' elegido' : '');
+  pintarNotaDia();
+}
+
+function pintarNotaDia(){
+  const nota = document.getElementById('nota-dia');
+  const hora = (document.getElementById('hora') || {}).value || '09:00';
+  if (nota) {
+    nota.textContent = 'Se recoge ' + (diaRecogida === 'manana' ? 'mañana' : 'hoy') +
+      ' a las ' + hora + '. El conductor lo ve en su agenda y le avisa a las 8 de la mañana.';
+  }
+}
+
+/* Devuelve la fecha con la hora de aquí: 2026-10-21T09:00:00 */
+function fechaRecogida(){
+  const d = new Date();
+  if (diaRecogida === 'manana') d.setDate(d.getDate() + 1);
+  const dos = (n) => (n < 10 ? '0' + n : '' + n);
+  const partes = String((document.getElementById('hora') || {}).value || '09:00').split(':');
+  const hh = Number(partes[0]);
+  const mm = Number(partes[1] || 0);
+  if (isNaN(hh) || hh < 0 || hh > 23) return '';
+  return d.getFullYear() + '-' + dos(d.getMonth() + 1) + '-' + dos(d.getDate()) +
+    'T' + dos(hh) + ':' + dos(isNaN(mm) ? 0 : mm) + ':00';
+}
+
 async function crearOrden(){
   const que = document.getElementById('que').value.trim();
   const desde = document.getElementById('desde').value.trim();
@@ -321,9 +376,12 @@ async function crearOrden(){
     aviso('aviso-pedir','Hacen falta tres cosas: qué se mueve, desde dónde y hasta dónde.','malo'); return;
   }
   const b = document.getElementById('btn-crear'); b.disabled = true; b.textContent = 'CREANDO…';
+  const horaEscrita = (document.getElementById('hora') || {}).value || '09:00';
   const r = await pedir('crearOrden', {
     telefono: sesion.telefono, nombre: sesion.nombre, que: que, desde: desde, hasta: hasta,
-    cuando: document.getElementById('cuando').value.trim(),
+    cuando: document.getElementById('cuando').value.trim() ||
+            ((diaRecogida === 'manana' ? 'Mañana' : 'Hoy') + ' a las ' + horaEscrita),
+    fecha_recogida: fechaRecogida(),
     notas: document.getElementById('notas').value.trim(), entrega: entrega,
     fotos: fotosCliente.map(f => f.split(',')[1] || f), idioma: 'es'
   });
