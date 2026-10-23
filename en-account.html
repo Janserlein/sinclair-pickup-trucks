@@ -267,7 +267,7 @@ var LLAVE = 'sinclair_cuentas_v1';
 /* ===== EL CUADERNO DE LA EMPRESA (opcional) =====
    Cuando el dueno monte la hoja de Google, se pega aqui su direccion (termina en /exec).
    Mientras este vacio, la pagina funciona en modo maqueta (guarda en este navegador). */
-var CUADERNO = 'https://script.google.com/macros/s/AKfycbxr7Rr1AnNFVafLy-pk_5nHa-6iZPb5bCYgEpHTBdlKaKHLaHwLXWWH1bI82y3RHPyG/exec';
+var CUADERNO = 'https://script.google.com/macros/s/AKfycbxID32Eq512nUtPWTIO-_BthDo_wpyPPK6duF_0aPXFlQSJFpOT27GvPLt2Hw1sU_JL/exec';
 function usarCuaderno() { return CUADERNO && CUADERNO.indexOf('http') === 0; }
 function llamarCuaderno(datos, alRecibir, alFallar) {
   if (!usarCuaderno()) { if (alFallar) alFallar('sin cuaderno'); return; }
