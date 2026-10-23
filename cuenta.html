@@ -561,7 +561,8 @@ function confirmarCodigo() {
     var cTel = (codigoPendiente.cuenta && codigoPendiente.cuenta.telefono) || '';
     llamarCuaderno({accion: 'verificar', telefono: cTel, quien: (codigoPendiente.quien || ''), codigo: escrito}, function (r) {
       if (r && r.ok) {
-        guardarSesion({nombre: r.nombre, apellido: r.apellido, telefono: cTel,
+        guardarSesion({nombre: r.nombre, apellido: r.apellido,
+                       telefono: (r.telefono || cTel), correo: (r.correo || ''),
                        papel: r.papel, tipo: r.tipo, estado: r.estado});
         pasarAdentro(r.nombre, r.papel, r.tipo, r.estado, r.entradas || (r.vuelve ? 2 : 1),
                       r.ultimo || ahora(), !!r.vuelve);

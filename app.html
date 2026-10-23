@@ -340,18 +340,92 @@ function entregar(codigo) {
 function cargarDatos() {
   var c = null;
   var lista = leer(CUENTAS, []);
+  var telSes = String(sesion.telefono || '').replace(/\D/g, '');
+  var nomSes = (String(sesion.nombre || '') + ' ' + String(sesion.apellido || '')).toLowerCase().trim();
+  /* Busca la cuenta: primero por teléfono; si no, por nombre (el bug de antes:
+     al entrar por correo o por nombre el teléfono llegaba vacío). */
   lista.forEach(function (x) {
-    if (String(x.telefono).replace(/\D/g, '') === String(sesion.telefono).replace(/\D/g, '')) c = x;
+    var t = String(x.telefono || '').replace(/\D/g, '');
+    var n = (String(x.nombre || '') + ' ' + String(x.apellido || '')).toLowerCase().trim();
+    if (telSes && t === telSes) c = x;
+    else if (!telSes && !c && n && nomSes && (n === nomSes || n.indexOf(nomSes) === 0 || nomSes.indexOf(n) === 0)) c = x;
   });
+  /* Si a la sesión le falta algo, se rellena con lo de la cuenta */
+  if (c) {
+    if (!sesion.telefono && c.telefono) sesion.telefono = c.telefono;
+    if (!sesion.correo && c.correo) sesion.correo = c.correo;
+    if (!sesion.apellido && c.apellido) sesion.apellido = c.apellido;
+    if (!sesion.estado && c.estado) sesion.estado = c.estado;
+    if (!sesion.papel && c.papel) sesion.papel = c.papel;
+  }
   var h = 'Nombre: <b>' + escapar(sesion.nombre + ' ' + (sesion.apellido || '')) + '</b><br>' +
           'Teléfono: <b>' + escapar(sesion.telefono || '') + '</b><br>' +
-          'Correo: ' + escapar(sesion.correo || '') + '<br>';
+          'Correo: ' + escapar(sesion.correo || '') + '<br>'
+          + '<span id="caja-consentimiento"></span>';
   if (c) {
     h += (c.vehiculo ? 'Vehículo: ' + escapar(c.vehiculo) + ' · Licencia: ' + escapar(c.licencia) + '<br>' : '') +
          (c.zona ? 'Zona: ' + escapar(c.zona) + ' · Seguro: ' + escapar(c.seguro) + '<br>' : '') +
          (c.acuse_ubicacion ? 'Acuse de seguimiento de ubicación: firmado el ' + escapar(fecha(c.acuse_ubicacion)) : '');
   }
   document.getElementById('mis-datos').innerHTML = h;
+  pintarConsentimiento(sesion.estado, sesion.papel, sesion.telefono);
+}
+
+/* ===== Casilla de consentimiento para el background check (conductor pendiente) ===== */
+var YA_CONSINTIO = {};
+
+function pintarConsentimiento(estado, papel, telefono) {
+  var caja = document.getElementById('caja-consentimiento');
+  if (!caja) return;
+  var esConductor = (String(papel || '').toLowerCase() === 'piloto');
+  var pendiente = String(estado || '').toLowerCase().indexOf('pendiente') === 0;
+  if (!esConductor || !pendiente) { caja.innerHTML = ''; return; }
+  if (YA_CONSINTIO[telefono]) {
+    caja.innerHTML = '<div class="aviso ok" style="margin-top:10px">✔ Consentimiento firmado. ' +
+                     'Tu solicitud está en revisión.</div>';
+    return;
+  }
+  caja.innerHTML =
+    '<div class="aviso info" style="margin-top:12px">' +
+      '<b>Falta un paso para revisar tu solicitud</b><br>' +
+      'Para poder correrte los antecedentes (licencia, récord de conducir y antecedentes penales) ' +
+      'necesitamos tu permiso por escrito.' +
+      '<label style="display:flex;gap:10px;align-items:flex-start;margin-top:10px;cursor:pointer">' +
+        '<input type="checkbox" id="chk-consentimiento" style="margin-top:3px;width:20px;height:20px">' +
+        '<span><b>Doy mi consentimiento</b> para que Sinclair Pickup Trucks LLC solicite y revise ' +
+        'mis antecedentes penales y de conducir (background check) para evaluar mi solicitud como conductor.</span>' +
+      '</label>' +
+      '<button class="si" id="btn-consentimiento" style="margin-top:10px;width:100%">' +
+        'FIRMAR MI CONSENTIMIENTO</button>' +
+      '<div id="consentimiento-aviso" style="margin-top:8px"></div>' +
+    '</div>';
+  var boton = document.getElementById('btn-consentimiento');
+  if (boton) boton.onclick = function () { enviarConsentimiento(telefono); };
+}
+
+function enviarConsentimiento(telefono) {
+  var chk = document.getElementById('chk-consentimiento');
+  var aviso = document.getElementById('consentimiento-aviso');
+  if (!chk || !chk.checked) {
+    if (aviso) aviso.innerHTML = '<div class="linea-ojo">Marca la casilla primero.</div>';
+    return;
+  }
+  if (aviso) aviso.innerHTML = 'Guardando…';
+  llamar({accion: 'consentirAntecedentes', telefono: telefono, acepta: true},
+    function (r) {
+      if (r && r.ok) {
+        YA_CONSINTIO[telefono] = true;
+        if (aviso) aviso.innerHTML = '<div class="linea-ok">✔ Listo: tu consentimiento quedó guardado. ' +
+          'La empresa ya puede revisar tus antecedentes y te avisará por correo.</div>';
+        pintarConsentimiento('pendiente de aprobación', 'piloto', telefono);
+      } else {
+        if (aviso) aviso.innerHTML = '<div class="linea-ojo">' +
+          ((r && (r.mensaje || r.error)) || 'No se pudo guardar. Intenta otra vez.') + '</div>';
+      }
+    },
+    function () {
+      if (aviso) aviso.innerHTML = '<div class="linea-ojo">No hubo conexión. Intenta otra vez.</div>';
+    });
 }
 
 function salir() {
