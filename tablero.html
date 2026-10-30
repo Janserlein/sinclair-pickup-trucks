@@ -525,6 +525,18 @@ function pintarOrdenes(){
       '<div class="texto"><b>De:</b> ' + esc(o.desde) + '</div>' +
       '<div class="texto"><b>A:</b> ' + esc(o.hasta) + '</div>' +
       '<div class="texto"><b>Conductor:</b> ' + (o.conductor ? esc(nombreChofer) : '<span style="color:#f87171">sin asignar</span>') + '</div>' +
+      /* 30-oct-2026 (orden del dueño): la FORMA DE PAGO del cliente se ve en la
+         tarjeta, sin tener que abrir nada. Si no ha pagado, sale en rojo. */
+      '<div class="texto"><b>Pago:</b> ' + (function () {
+        const nombresPago = { banco: 'Cuenta bancaria', tarjeta: 'Tarjeta', zelle: 'Zelle', efectivo: 'Efectivo', factura: 'Factura' };
+        if (o.pago_metodo) {
+          const pagado = (o.pago_estado === 'pagado' || o.pagado);
+          return '<span style="color:' + (pagado ? '#4ade80' : '#eab308') + '">' +
+            esc(nombresPago[o.pago_metodo] || o.pago_metodo) + (pagado ? ' · PAGADO' : ' · falta cobrar') + '</span>';
+        }
+        if (o.estado === 'nuevo') return '<span style="color:#f87171">SIN PAGAR (no ha elegido forma de pago)</span>';
+        return '<span style="color:#94a3b8">sin forma de pago</span>';
+      })() + '</div>' +
       (o.fecha_recogida ? '<div class="recogida">Recoger: ' + esc(cuandoDe(o.fecha_recogida)) +
         (o.precio ? ' · Se paga ' + esc(o.precio) : '') +
         (o.millas ? ' · ' + esc(o.millas) + ' millas' : '') + '</div>' : '') +
