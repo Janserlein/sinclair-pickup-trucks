@@ -542,15 +542,14 @@ function calcularPrecio() {
         if (!g('Nombre') || !g('Telefono')) { alert('Falta su nombre o su teléfono.'); return; }
         var datos = {
           accion: 'pedido',
-          cliente: g('Nombre'),
+          nombre: g('Nombre'),
           telefono: g('Telefono'),
           correo: g('Correo'),
           que: g('Servicio') || 'No dicho',
           desde: g('Desde'),
           hasta: g('Hasta'),
           cuando: g('Cuando'),
-          peso: g('Peso'),
-          notas: g('Detalles'),
+          nota: ('Peso: ' + (g('Peso') || 'no dicho') + ' · ' + g('Detalles')).slice(0, 500),
           idioma: 'es',
           origen: 'web'
         };
